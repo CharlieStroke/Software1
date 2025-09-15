@@ -1,8 +1,32 @@
+:root {
+  /* Paleta de Colores Verde */
+  --verde-oscuro: #0d4f3c;
+  --verde-principal: #2d8659;
+  --verde-medio: #5cb85c;
+  --verde-claro: #7dd87f;
+  --verde-muy-claro: #a8e6cf;
+  --verde-fondo: #f0f8f5;
+  
+  /* Colores Neutros */
+  --blanco: #ffffff;
+  --gris-claro: #f8f9fa;
+  --gris-medio: #6c757d;
+  --gris-oscuro: #343a40;
+  --negro: #000000;
+  
+  /* Colores de Estado */
+  --verde-exito: #28a745;
+  --verde-hover: #1e7e34;
+  --sombra-verde: rgba(45, 134, 89, 0.2);
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color: var(--verde-fondo);
+  color: var(--gris-oscuro);
 }
 
 .logo {

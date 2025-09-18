@@ -29,6 +29,7 @@ const onSubmit = async (data, { setSubmitting }) => {
 return (
     <div className="login-container">
         <div className="login-form-wrapper">
+            <h1 className="main-title">Carrizos Bar</h1>
             <h1 className="login-title">Iniciar Sesión</h1>
             <Formik initialValues={initialValues}
                 validationSchema={validationSchema}

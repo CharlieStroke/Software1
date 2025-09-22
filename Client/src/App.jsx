@@ -14,8 +14,10 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/comandas" element={<Dashboard />} />
         <Route path="/inventario" element={<Dashboard />} />
-        <Route path="/mesas" element={<Dashboard />} />
+        <Route path="/pedidos" element={<Dashboard />} />
         <Route path="/usuarios" element={<Dashboard />} />
+        <Route path="/dueños" element={<Dashboard />} />
+        <Route path="/sucursal" element={<Dashboard />} />
       </Routes>
     </Router>
   )

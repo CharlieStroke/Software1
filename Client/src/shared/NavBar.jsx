@@ -18,13 +18,23 @@ export default function NavBar() {
                         </NavLink>
                     </li>
                     <li>
-                        <NavLink to="/mesas" className={({ isActive }) => isActive ? 'active' : ''}>
-                            Mesas
+                        <NavLink to="/pedidos" className={({ isActive }) => isActive ? 'active' : ''}>
+                            Pedidos
                         </NavLink>
                     </li>
                     <li>
                         <NavLink to="/usuarios" className={({ isActive }) => isActive ? 'active' : ''}>
                             Usuarios
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to="/dueños" className={({ isActive }) => isActive ? 'active' : ''}>
+                            Dueños
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to="/sucursal" className={({ isActive }) => isActive ? 'active' : ''}>
+                            Sucursal
                         </NavLink>
                     </li>
                     <li>

@@ -45,87 +45,13 @@ const Comandas = () => {
     };
 
     // Funciones para manejar el modal de nueva comanda
-    const abrirModalNuevaComanda = () => {
-        setNuevaComanda({
-            mesa: '',
-            cliente: '',
-            items: [''],
-            total: ''
-        });
-        setModalNuevaComanda(true);
-    };
 
-    const cerrarModalNuevaComanda = () => {
-        setModalNuevaComanda(false);
-        setNuevaComanda({
-            mesa: '',
-            cliente: '',
-            items: [''],
-            total: ''
-        });
-    };
 
-    const agregarItem = () => {
-        setNuevaComanda({
-            ...nuevaComanda,
-            items: [...nuevaComanda.items, '']
-        });
-    };
 
-    const eliminarItem = (index) => {
-        const nuevosItems = nuevaComanda.items.filter((_, i) => i !== index);
-        setNuevaComanda({
-            ...nuevaComanda,
-            items: nuevosItems.length > 0 ? nuevosItems : ['']
-        });
-    };
 
-    const actualizarItem = (index, valor) => {
-        const nuevosItems = [...nuevaComanda.items];
-        nuevosItems[index] = valor;
-        setNuevaComanda({
-            ...nuevaComanda,
-            items: nuevosItems
-        });
-    };
-
-    const calcularTotal = () => {
-        let total = 0;
-        nuevaComanda.items.forEach(item => {
-            const producto = productosDisponibles.find(p => p.nombre === item);
-            if (producto) {
-                total += producto.precio;
-            }
-        });
-        return total.toFixed(2);
-    };
-
-    const agregarComanda = () => {
-        if (nuevaComanda.mesa && nuevaComanda.cliente && nuevaComanda.items.some(item => item !== '')) {
-            const itemsValidos = nuevaComanda.items.filter(item => item !== '');
-            const total = parseFloat(calcularTotal());
-            
-            const nuevaId = Math.max(...comandas.map(c => c.id)) + 1;
-            const comandaParaAgregar = {
-                id: nuevaId,
-                mesa: parseInt(nuevaComanda.mesa),
-                cliente: nuevaComanda.cliente,
-                items: itemsValidos,
-                total: total,
-                estado: 'pendiente'
-            };
-
-            setComandasList([...comandas, comandaParaAgregar]);
-            cerrarModalNuevaComanda();
-        }
-    };
 
     return (
         <div className="comandas-container">
-            <div className="comandas-header">
-                <h2>Gestión de Comandas</h2>
-                <button className="btn-nueva-comanda" onClick={abrirModalNuevaComanda}>Nueva Comanda</button>
-            </div>
             
             <div className="comandas-grid">
                 {comandas.map(comanda => (
@@ -178,6 +104,7 @@ const Comandas = () => {
                     </div>
                 ))}
             </div>
+            
 
             {/* Modal para agregar nueva comanda */}
             {modalNuevaComanda && (

@@ -1,11 +1,44 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../componentsCss/comandas.css';
 
 const Comandas = () => {
+    const navigate = useNavigate();
+
     const [comandas, setComandasList] = useState([
-        { id: 1, mesa: 5, cliente: 'Juan Pérez', items: ['Pizza Margherita', 'Coca Cola'], total: 18.50, estado: 'pendiente' },
-        { id: 2, mesa: 3, cliente: 'María García', items: ['Hamburguesa', 'Papas fritas'], total: 12.00, estado: 'en-preparacion' },
-        { id: 3, mesa: 8, cliente: 'Carlos López', items: ['Ensalada César', 'Agua'], total: 9.50, estado: 'listo' }
+        {
+            id: 1,
+            mesa: 5,
+            nombrePedido: 'Pedido Juan Pérez',
+            productos: [
+                { nombre: 'Pizza Margherita', cantidad: 1, precio: 15.00 },
+                { nombre: 'Coca Cola', cantidad: 1, precio: 2.50 }
+            ],
+            total: 17.50,
+            estado: 'pendiente'
+        },
+        {
+            id: 2,
+            mesa: 3,
+            nombrePedido: 'Pedido María García',
+            productos: [
+                { nombre: 'Hamburguesa', cantidad: 1, precio: 8.50 },
+                { nombre: 'Papas fritas', cantidad: 1, precio: 3.50 }
+            ],
+            total: 12.00,
+            estado: 'en-preparacion'
+        },
+        {
+            id: 3,
+            mesa: 8,
+            nombrePedido: 'Pedido Carlos López',
+            productos: [
+                { nombre: 'Ensalada César', cantidad: 1, precio: 7.00 },
+                { nombre: 'Agua', cantidad: 1, precio: 2.00 }
+            ],
+            total: 9.00,
+            estado: 'listo'
+        }
     ]);
 
     // Estados para el modal de nueva comanda
@@ -44,6 +77,10 @@ const Comandas = () => {
         }
     };
 
+    const verDetalles = (id) => {
+        navigate(`/comandas/detalle/${id}`);
+    };
+
     // Funciones para manejar el modal de nueva comanda
 
 
@@ -64,20 +101,28 @@ const Comandas = () => {
                         </div>
                         
                         <div className="comanda-body">
-                            <h4>{comanda.cliente}</h4>
+                            <h4>{comanda.nombrePedido}</h4>
                             <ul className="items-list">
-                                {comanda.items.map((item, index) => (
-                                    <li key={index}>{item}</li>
+                                {comanda.productos.map((producto, index) => (
+                                    <li key={index}>
+                                        {producto.nombre} x{producto.cantidad} - ${producto.precio.toFixed(2)}
+                                    </li>
                                 ))}
                             </ul>
                             <div className="comanda-total">
-                                Total: ${comanda.total}
+                                Total: ${comanda.total.toFixed(2)}
                             </div>
                         </div>
                         
                         <div className="comanda-actions">
+                            <button
+                                onClick={() => verDetalles(comanda.id)}
+                                className="btn-accion btn-detalles"
+                            >
+                                Ver Detalles
+                            </button>
                             {comanda.estado === 'pendiente' && (
-                                <button 
+                                <button
                                     onClick={() => cambiarEstado(comanda.id, 'en-preparacion')}
                                     className="btn-accion btn-preparar"
                                 >
@@ -85,7 +130,7 @@ const Comandas = () => {
                                 </button>
                             )}
                             {comanda.estado === 'en-preparacion' && (
-                                <button 
+                                <button
                                     onClick={() => cambiarEstado(comanda.id, 'listo')}
                                     className="btn-accion btn-listo"
                                 >
@@ -93,7 +138,7 @@ const Comandas = () => {
                                 </button>
                             )}
                             {comanda.estado === 'listo' && (
-                                <button 
+                                <button
                                     onClick={() => cambiarEstado(comanda.id, 'entregado')}
                                     className="btn-accion btn-entregar"
                                 >

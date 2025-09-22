@@ -156,6 +156,15 @@
     background-color: var(--verde-hover);
 }
 
+.btn-detalles {
+    background-color: var(--verde-principal);
+    color: var(--blanco);
+}
+
+.btn-detalles:hover {
+    background-color: var(--verde-hover);
+}
+
 /* Estilos para el modal */
 .modal-overlay {
     position: fixed;

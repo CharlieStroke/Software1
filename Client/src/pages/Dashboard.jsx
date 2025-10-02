@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import NavBar from '../shared/NavBar';
+import WelcomeView from '../shared/WelcomeView';
+import AccessDenied from '../shared/AccessDenied';
 import Comandas from '../components/comandas/components/comandas';
 import DetalleComanda from '../components/comandas/components/DetalleComanda';
 import Inventario from '../components/inventario/components/inventario';
@@ -15,6 +17,13 @@ import '../pagesCss/Dashboard.css';
 const Dashboard = () => {
     const location = useLocation();
     const [vistaActual, setVistaActual] = useState('resumen');
+    const [userRole, setUserRole] = useState(null);
+
+    // Obtener el rol del usuario guardado en localStorage para usarlo en la verificación de permisos
+    React.useEffect(() => {
+        const role = localStorage.getItem('userRole');
+        setUserRole(role);
+    }, []);
 
 	// Detectar la vista actual basada en la URL
 	React.useEffect(() => {
@@ -29,7 +38,33 @@ const Dashboard = () => {
 		else setVistaActual('resumen');
 	}, [location]);
 
+    // Verificar si el usuario tiene permisos para ver una vista específica
+    const tienePermisos = (vista) => {
+        if (!userRole) return false;
+        
+        // Permitir siempre el acceso a la vista de resumen/bienvenida
+        if (vista === 'resumen') return true;
+        
+        const permisosPorRol = {
+            'mesero': ['pedidos', 'comandas', 'detalle-comanda'],
+            'dueño': ['pedidos', 'comandas', 'detalle-comanda', 'inventario', 'usuarios'],
+            'admin': ['pedidos', 'comandas', 'detalle-comanda', 'inventario', 'usuarios', 'dueños', 'sucursal']
+        };
+        
+        return permisosPorRol[userRole]?.includes(vista) || false;
+    };
+
 	const renderContenido = () => {
+        // Si no tiene permisos para la vista actual, mostrar acceso denegado
+        if (!tienePermisos(vistaActual)) {
+            return (
+                <AccessDenied 
+                    userRole={userRole} 
+                    attemptedSection={vistaActual}
+                />
+            );
+        }
+
 		switch(vistaActual) {
 			case 'comandas':
 				return <Comandas />;
@@ -45,6 +80,8 @@ const Dashboard = () => {
 				return <Dueños />;
 			case 'sucursal':
 				return <Sucursal />;
+            default:
+                return <WelcomeView userRole={userRole} />;
 		}
 	};
 

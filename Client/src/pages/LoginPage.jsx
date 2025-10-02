@@ -16,10 +16,21 @@ const validationSchema = Yup.object().shape({
 
 const onSubmit = async (data, { setSubmitting }) => {
     try {
-        if (data.username === 'admin' && data.password === 'admin') {
+        // Definir credenciales por rol
+        const usuarios = {
+            'mesero': { password: 'mesero123', rol: 'mesero' },
+            'dueño': { password: 'dueño123', rol: 'dueño' },
+            'admin': { password: 'admin123', rol: 'admin' }
+        };
+
+        const usuario = usuarios[data.username];
+        
+        if (usuario && data.password === usuario.password) {
+            // Guardamos el usuario en localStorage para usar en el Dashboard
+            localStorage.setItem('userRole', usuario.rol);
             navigate('/dashboard');
         } else {
-            alert('Usuario o Contraseña Invalida');
+            alert('Usuario o Contraseña Inválida');
         }
     } catch (error) {
         console.error('Error de inicio de sesión:', error);

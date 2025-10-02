@@ -36,3 +36,22 @@
 	background-color: var(--verde-claro);
 	transform: translateY(-1px);
 }
+
+/* Estilo para el botón de logout */
+.logout-button {
+	background: transparent;
+	border: 2px solid var(--blanco);
+	color: var(--blanco);
+	font-weight: 500;
+	padding: 0.75rem 1rem;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.2s;
+	font-size: inherit;
+}
+
+.logout-button:hover {
+	background-color: var(--blanco);
+	color: var(--verde-oscuro);
+	transform: translateY(-1px);
+}

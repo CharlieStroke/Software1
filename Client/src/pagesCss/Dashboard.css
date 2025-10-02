@@ -78,3 +78,49 @@
     margin-bottom: 1rem;
     font-size: 1.3rem;
 }
+
+/* Estilos para el mensaje de bienvenida con rol */
+.role-info {
+    background: var(--verde-muy-claro);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 2px solid var(--verde-claro);
+    margin-top: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.role-info p {
+    color: var(--verde-oscuro);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Estilos para el mensaje de acceso denegado */
+.access-denied {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--blanco);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px var(--sombra-verde);
+    margin: 2rem;
+    border: 2px solid #ff6b6b;
+}
+
+.access-denied h2 {
+    color: #d63031;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.access-denied p {
+    color: #636e72;
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+}
+
+.access-denied strong {
+    color: var(--verde-oscuro);
+    text-transform: capitalize;
+}

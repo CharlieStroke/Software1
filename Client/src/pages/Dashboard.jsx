@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+
 import NavBar from '../shared/NavBar';
 import Comandas from '../components/comandas/components/comandas';
 import DetalleComanda from '../components/comandas/components/DetalleComanda';
@@ -8,11 +9,12 @@ import Pedidos from '../components/pedidos/components/pedidos';
 import Usuarios from '../components/usuarios/components/usuarios';
 import Dueños from '../components/dueños/components/dueños';
 import Sucursal from '../components/sucursal/components/sucursal';
+
 import '../pagesCss/Dashboard.css';
 
 const Dashboard = () => {
-	const location = useLocation();
-	const [vistaActual, setVistaActual] = useState('resumen');
+    const location = useLocation();
+    const [vistaActual, setVistaActual] = useState('resumen');
 
 	// Detectar la vista actual basada en la URL
 	React.useEffect(() => {
@@ -46,12 +48,12 @@ const Dashboard = () => {
 		}
 	};
 
-	return (
-		<div className="dashboard-container">
-			<NavBar />
-			{renderContenido()}
-		</div>
-	);
+    return (
+        <div className="dashboard-container">
+            <NavBar />
+            {renderContenido()}
+        </div>
+    );
 };
 
 export default Dashboard;

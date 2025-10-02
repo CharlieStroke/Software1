@@ -1,0 +1,1251 @@
+{
+  "database": {
+    "name": "restaurant_management",
+    "description": "Sistema de Gestión de Restaurantes",
+    "charset": "utf8mb4",
+    "collation": "utf8mb4_unicode_ci",
+    "created_date": "2025-09-29"
+  },
+  "tables": {
+    "duenos": {
+      "description": "Gestión de propietarios/socios del negocio",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "nombre": {
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        "apellido": {
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        "email": {
+          "type": "VARCHAR(150)",
+          "nullable": false,
+          "unique": true
+        },
+        "telefono": {
+          "type": "VARCHAR(20)",
+          "nullable": true
+        },
+        "fecha_ingreso": {
+          "type": "DATE",
+          "nullable": true
+        },
+        "sucursales_asignadas": {
+          "type": "TEXT",
+          "nullable": true
+        },
+        "activo": {
+          "type": "BOOLEAN",
+          "default": true,
+          "nullable": false
+        },
+        "fecha_creacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        },
+        "fecha_actualizacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+          "nullable": false
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_email",
+          "columns": ["email"]
+        },
+        {
+          "name": "idx_activo",
+          "columns": ["activo"]
+        },
+        {
+          "name": "idx_fecha_ingreso",
+          "columns": ["fecha_ingreso"]
+        }
+      ],
+      "foreign_keys": []
+    },
+    "sucursales": {
+      "description": "Gestión de sucursales/restaurantes",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "nombre": {
+          "type": "VARCHAR(150)",
+          "nullable": false
+        },
+        "direccion": {
+          "type": "TEXT",
+          "nullable": false
+        },
+        "telefono": {
+          "type": "VARCHAR(20)",
+          "nullable": true
+        },
+        "email": {
+          "type": "VARCHAR(150)",
+          "nullable": true
+        },
+        "gerente": {
+          "type": "VARCHAR(200)",
+          "nullable": true
+        },
+        "horario_apertura": {
+          "type": "TIME",
+          "nullable": true
+        },
+        "horario_cierre": {
+          "type": "TIME",
+          "nullable": true
+        },
+        "capacidad": {
+          "type": "INT",
+          "default": 0,
+          "nullable": false
+        },
+        "fecha_apertura": {
+          "type": "DATE",
+          "nullable": true
+        },
+        "activa": {
+          "type": "BOOLEAN",
+          "default": true,
+          "nullable": false
+        },
+        "fecha_creacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        },
+        "fecha_actualizacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+          "nullable": false
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_nombre",
+          "columns": ["nombre"]
+        },
+        {
+          "name": "idx_activa",
+          "columns": ["activa"]
+        },
+        {
+          "name": "idx_fecha_apertura",
+          "columns": ["fecha_apertura"]
+        }
+      ],
+      "foreign_keys": []
+    },
+    "usuarios": {
+      "description": "Gestión de empleados del sistema",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "nombre": {
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        "apellido": {
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        "email": {
+          "type": "VARCHAR(150)",
+          "nullable": false,
+          "unique": true
+        },
+        "password": {
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        "telefono": {
+          "type": "VARCHAR(20)",
+          "nullable": true
+        },
+        "rol": {
+          "type": "ENUM",
+          "values": ["admin", "gerente", "mesero", "cocinero", "cajero"],
+          "default": "mesero",
+          "nullable": false
+        },
+        "sucursal_id": {
+          "type": "INT",
+          "nullable": true
+        },
+        "activo": {
+          "type": "BOOLEAN",
+          "default": true,
+          "nullable": false
+        },
+        "fecha_creacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        },
+        "fecha_actualizacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+          "nullable": false
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_email",
+          "columns": ["email"]
+        },
+        {
+          "name": "idx_rol",
+          "columns": ["rol"]
+        },
+        {
+          "name": "idx_activo",
+          "columns": ["activo"]
+        },
+        {
+          "name": "idx_sucursal",
+          "columns": ["sucursal_id"]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "fk_usuarios_sucursal",
+          "column": "sucursal_id",
+          "references_table": "sucursales",
+          "references_column": "id",
+          "on_delete": "SET NULL"
+        }
+      ]
+    },
+    "categorias_productos": {
+      "description": "Clasificación de productos del inventario",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "nombre": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "unique": true
+        },
+        "descripcion": {
+          "type": "TEXT",
+          "nullable": true
+        },
+        "activa": {
+          "type": "BOOLEAN",
+          "default": true,
+          "nullable": false
+        },
+        "fecha_creacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_nombre",
+          "columns": ["nombre"]
+        },
+        {
+          "name": "idx_activa",
+          "columns": ["activa"]
+        }
+      ],
+      "foreign_keys": []
+    },
+    "inventario": {
+      "description": "Gestión de productos e ingredientes",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "nombre": {
+          "type": "VARCHAR(150)",
+          "nullable": false
+        },
+        "descripcion": {
+          "type": "TEXT",
+          "nullable": true
+        },
+        "categoria_id": {
+          "type": "INT",
+          "nullable": true
+        },
+        "precio": {
+          "type": "DECIMAL(10,2)",
+          "default": "0.00",
+          "nullable": false
+        },
+        "costo": {
+          "type": "DECIMAL(10,2)",
+          "default": "0.00",
+          "nullable": false
+        },
+        "stock_actual": {
+          "type": "INT",
+          "default": 0,
+          "nullable": false
+        },
+        "stock_minimo": {
+          "type": "INT",
+          "default": 0,
+          "nullable": false
+        },
+        "unidad_medida": {
+          "type": "ENUM",
+          "values": ["unidad", "kg", "gr", "lt", "ml", "porcion"],
+          "default": "unidad",
+          "nullable": false
+        },
+        "sucursal_id": {
+          "type": "INT",
+          "nullable": true
+        },
+        "activo": {
+          "type": "BOOLEAN",
+          "default": true,
+          "nullable": false
+        },
+        "fecha_creacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        },
+        "fecha_actualizacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+          "nullable": false
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_nombre",
+          "columns": ["nombre"]
+        },
+        {
+          "name": "idx_categoria",
+          "columns": ["categoria_id"]
+        },
+        {
+          "name": "idx_sucursal",
+          "columns": ["sucursal_id"]
+        },
+        {
+          "name": "idx_stock_actual",
+          "columns": ["stock_actual"]
+        },
+        {
+          "name": "idx_activo",
+          "columns": ["activo"]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "fk_inventario_categoria",
+          "column": "categoria_id",
+          "references_table": "categorias_productos",
+          "references_column": "id",
+          "on_delete": "SET NULL"
+        },
+        {
+          "name": "fk_inventario_sucursal",
+          "column": "sucursal_id",
+          "references_table": "sucursales",
+          "references_column": "id",
+          "on_delete": "CASCADE"
+        }
+      ]
+    },
+    "mesas": {
+      "description": "Gestión de mesas del restaurante",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "numero_mesa": {
+          "type": "INT",
+          "nullable": false
+        },
+        "capacidad": {
+          "type": "INT",
+          "default": 4,
+          "nullable": false
+        },
+        "sucursal_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "estado": {
+          "type": "ENUM",
+          "values": ["disponible", "ocupada", "reservada", "mantenimiento"],
+          "default": "disponible",
+          "nullable": false
+        },
+        "ubicacion": {
+          "type": "VARCHAR(100)",
+          "nullable": true
+        },
+        "activa": {
+          "type": "BOOLEAN",
+          "default": true,
+          "nullable": false
+        },
+        "fecha_creacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_estado",
+          "columns": ["estado"]
+        },
+        {
+          "name": "idx_sucursal",
+          "columns": ["sucursal_id"]
+        },
+        {
+          "name": "idx_activa",
+          "columns": ["activa"]
+        }
+      ],
+      "unique_keys": [
+        {
+          "name": "unique_mesa_sucursal",
+          "columns": ["numero_mesa", "sucursal_id"]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "fk_mesas_sucursal",
+          "column": "sucursal_id",
+          "references_table": "sucursales",
+          "references_column": "id",
+          "on_delete": "CASCADE"
+        }
+      ]
+    },
+    "clientes": {
+      "description": "Información de clientes para pedidos",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "nombre": {
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        "apellido": {
+          "type": "VARCHAR(100)",
+          "nullable": true
+        },
+        "telefono": {
+          "type": "VARCHAR(20)",
+          "nullable": true
+        },
+        "email": {
+          "type": "VARCHAR(150)",
+          "nullable": true
+        },
+        "direccion": {
+          "type": "TEXT",
+          "nullable": true
+        },
+        "fecha_registro": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_telefono",
+          "columns": ["telefono"]
+        },
+        {
+          "name": "idx_email",
+          "columns": ["email"]
+        },
+        {
+          "name": "idx_nombre",
+          "columns": ["nombre"]
+        }
+      ],
+      "foreign_keys": []
+    },
+    "pedidos": {
+      "description": "Gestión de pedidos realizados",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "numero_pedido": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "unique": true
+        },
+        "cliente_id": {
+          "type": "INT",
+          "nullable": true
+        },
+        "mesa_id": {
+          "type": "INT",
+          "nullable": true
+        },
+        "usuario_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "sucursal_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "estado": {
+          "type": "ENUM",
+          "values": ["pendiente", "en_preparacion", "listo", "entregado", "cancelado"],
+          "default": "pendiente",
+          "nullable": false
+        },
+        "tipo_pedido": {
+          "type": "ENUM",
+          "values": ["mesa", "domicilio", "para_llevar"],
+          "default": "mesa",
+          "nullable": false
+        },
+        "subtotal": {
+          "type": "DECIMAL(10,2)",
+          "default": "0.00",
+          "nullable": false
+        },
+        "impuestos": {
+          "type": "DECIMAL(10,2)",
+          "default": "0.00",
+          "nullable": false
+        },
+        "descuento": {
+          "type": "DECIMAL(10,2)",
+          "default": "0.00",
+          "nullable": false
+        },
+        "total": {
+          "type": "DECIMAL(10,2)",
+          "default": "0.00",
+          "nullable": false
+        },
+        "notas": {
+          "type": "TEXT",
+          "nullable": true
+        },
+        "fecha_pedido": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        },
+        "fecha_entrega": {
+          "type": "TIMESTAMP",
+          "nullable": true
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_numero_pedido",
+          "columns": ["numero_pedido"]
+        },
+        {
+          "name": "idx_estado",
+          "columns": ["estado"]
+        },
+        {
+          "name": "idx_tipo_pedido",
+          "columns": ["tipo_pedido"]
+        },
+        {
+          "name": "idx_usuario",
+          "columns": ["usuario_id"]
+        },
+        {
+          "name": "idx_sucursal",
+          "columns": ["sucursal_id"]
+        },
+        {
+          "name": "idx_fecha_pedido",
+          "columns": ["fecha_pedido"]
+        },
+        {
+          "name": "idx_pedidos_fecha_sucursal",
+          "columns": ["fecha_pedido", "sucursal_id"]
+        },
+        {
+          "name": "idx_pedidos_estado_sucursal",
+          "columns": ["estado", "sucursal_id"]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "fk_pedidos_cliente",
+          "column": "cliente_id",
+          "references_table": "clientes",
+          "references_column": "id",
+          "on_delete": "SET NULL"
+        },
+        {
+          "name": "fk_pedidos_mesa",
+          "column": "mesa_id",
+          "references_table": "mesas",
+          "references_column": "id",
+          "on_delete": "SET NULL"
+        },
+        {
+          "name": "fk_pedidos_usuario",
+          "column": "usuario_id",
+          "references_table": "usuarios",
+          "references_column": "id",
+          "on_delete": "RESTRICT"
+        },
+        {
+          "name": "fk_pedidos_sucursal",
+          "column": "sucursal_id",
+          "references_table": "sucursales",
+          "references_column": "id",
+          "on_delete": "RESTRICT"
+        }
+      ]
+    },
+    "detalle_pedidos": {
+      "description": "Items específicos de cada pedido",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "pedido_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "producto_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "cantidad": {
+          "type": "INT",
+          "default": 1,
+          "nullable": false
+        },
+        "precio_unitario": {
+          "type": "DECIMAL(10,2)",
+          "nullable": false
+        },
+        "subtotal": {
+          "type": "DECIMAL(10,2)",
+          "nullable": false
+        },
+        "notas_item": {
+          "type": "TEXT",
+          "nullable": true
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_pedido",
+          "columns": ["pedido_id"]
+        },
+        {
+          "name": "idx_producto",
+          "columns": ["producto_id"]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "fk_detalle_pedidos_pedido",
+          "column": "pedido_id",
+          "references_table": "pedidos",
+          "references_column": "id",
+          "on_delete": "CASCADE"
+        },
+        {
+          "name": "fk_detalle_pedidos_producto",
+          "column": "producto_id",
+          "references_table": "inventario",
+          "references_column": "id",
+          "on_delete": "RESTRICT"
+        }
+      ]
+    },
+    "comandas": {
+      "description": "Órdenes para la cocina",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "pedido_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "numero_comanda": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "unique": true
+        },
+        "estado": {
+          "type": "ENUM",
+          "values": ["pendiente", "en_preparacion", "lista", "entregada"],
+          "default": "pendiente",
+          "nullable": false
+        },
+        "prioridad": {
+          "type": "ENUM",
+          "values": ["baja", "normal", "alta", "urgente"],
+          "default": "normal",
+          "nullable": false
+        },
+        "tiempo_estimado": {
+          "type": "INT",
+          "nullable": true,
+          "comment": "en minutos"
+        },
+        "usuario_asignado_id": {
+          "type": "INT",
+          "nullable": true
+        },
+        "sucursal_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "notas_cocina": {
+          "type": "TEXT",
+          "nullable": true
+        },
+        "fecha_creacion": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        },
+        "fecha_inicio_preparacion": {
+          "type": "TIMESTAMP",
+          "nullable": true
+        },
+        "fecha_finalizacion": {
+          "type": "TIMESTAMP",
+          "nullable": true
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_numero_comanda",
+          "columns": ["numero_comanda"]
+        },
+        {
+          "name": "idx_estado",
+          "columns": ["estado"]
+        },
+        {
+          "name": "idx_prioridad",
+          "columns": ["prioridad"]
+        },
+        {
+          "name": "idx_usuario_asignado",
+          "columns": ["usuario_asignado_id"]
+        },
+        {
+          "name": "idx_sucursal",
+          "columns": ["sucursal_id"]
+        },
+        {
+          "name": "idx_fecha_creacion",
+          "columns": ["fecha_creacion"]
+        },
+        {
+          "name": "idx_comandas_estado_sucursal",
+          "columns": ["estado", "sucursal_id"]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "fk_comandas_pedido",
+          "column": "pedido_id",
+          "references_table": "pedidos",
+          "references_column": "id",
+          "on_delete": "CASCADE"
+        },
+        {
+          "name": "fk_comandas_usuario_asignado",
+          "column": "usuario_asignado_id",
+          "references_table": "usuarios",
+          "references_column": "id",
+          "on_delete": "SET NULL"
+        },
+        {
+          "name": "fk_comandas_sucursal",
+          "column": "sucursal_id",
+          "references_table": "sucursales",
+          "references_column": "id",
+          "on_delete": "RESTRICT"
+        }
+      ]
+    },
+    "detalle_comandas": {
+      "description": "Items específicos de cada comanda",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "comanda_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "detalle_pedido_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "estado_item": {
+          "type": "ENUM",
+          "values": ["pendiente", "en_preparacion", "listo"],
+          "default": "pendiente",
+          "nullable": false
+        },
+        "notas_preparacion": {
+          "type": "TEXT",
+          "nullable": true
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_comanda",
+          "columns": ["comanda_id"]
+        },
+        {
+          "name": "idx_detalle_pedido",
+          "columns": ["detalle_pedido_id"]
+        },
+        {
+          "name": "idx_estado_item",
+          "columns": ["estado_item"]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "fk_detalle_comandas_comanda",
+          "column": "comanda_id",
+          "references_table": "comandas",
+          "references_column": "id",
+          "on_delete": "CASCADE"
+        },
+        {
+          "name": "fk_detalle_comandas_detalle_pedido",
+          "column": "detalle_pedido_id",
+          "references_table": "detalle_pedidos",
+          "references_column": "id",
+          "on_delete": "CASCADE"
+        }
+      ]
+    },
+    "movimientos_inventario": {
+      "description": "Historial de cambios en el stock",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "producto_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "tipo_movimiento": {
+          "type": "ENUM",
+          "values": ["entrada", "salida", "ajuste", "merma"],
+          "nullable": false
+        },
+        "cantidad": {
+          "type": "INT",
+          "nullable": false
+        },
+        "motivo": {
+          "type": "VARCHAR(200)",
+          "nullable": true
+        },
+        "usuario_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "sucursal_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "referencia_pedido_id": {
+          "type": "INT",
+          "nullable": true
+        },
+        "fecha_movimiento": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_producto",
+          "columns": ["producto_id"]
+        },
+        {
+          "name": "idx_tipo_movimiento",
+          "columns": ["tipo_movimiento"]
+        },
+        {
+          "name": "idx_usuario",
+          "columns": ["usuario_id"]
+        },
+        {
+          "name": "idx_sucursal",
+          "columns": ["sucursal_id"]
+        },
+        {
+          "name": "idx_fecha_movimiento",
+          "columns": ["fecha_movimiento"]
+        },
+        {
+          "name": "idx_movimientos_fecha_tipo",
+          "columns": ["fecha_movimiento", "tipo_movimiento"]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "fk_movimientos_inventario_producto",
+          "column": "producto_id",
+          "references_table": "inventario",
+          "references_column": "id",
+          "on_delete": "CASCADE"
+        },
+        {
+          "name": "fk_movimientos_inventario_usuario",
+          "column": "usuario_id",
+          "references_table": "usuarios",
+          "references_column": "id",
+          "on_delete": "RESTRICT"
+        },
+        {
+          "name": "fk_movimientos_inventario_sucursal",
+          "column": "sucursal_id",
+          "references_table": "sucursales",
+          "references_column": "id",
+          "on_delete": "RESTRICT"
+        },
+        {
+          "name": "fk_movimientos_inventario_pedido",
+          "column": "referencia_pedido_id",
+          "references_table": "pedidos",
+          "references_column": "id",
+          "on_delete": "SET NULL"
+        }
+      ]
+    },
+    "sesiones_usuario": {
+      "description": "Control de acceso y seguridad",
+      "columns": {
+        "id": {
+          "type": "INT",
+          "auto_increment": true,
+          "primary_key": true,
+          "nullable": false
+        },
+        "usuario_id": {
+          "type": "INT",
+          "nullable": false
+        },
+        "token": {
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "unique": true
+        },
+        "ip_address": {
+          "type": "VARCHAR(45)",
+          "nullable": true
+        },
+        "user_agent": {
+          "type": "TEXT",
+          "nullable": true
+        },
+        "fecha_inicio": {
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "nullable": false
+        },
+        "fecha_expiracion": {
+          "type": "TIMESTAMP",
+          "nullable": false
+        },
+        "activa": {
+          "type": "BOOLEAN",
+          "default": true,
+          "nullable": false
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_token",
+          "columns": ["token"]
+        },
+        {
+          "name": "idx_usuario",
+          "columns": ["usuario_id"]
+        },
+        {
+          "name": "idx_activa",
+          "columns": ["activa"]
+        },
+        {
+          "name": "idx_fecha_expiracion",
+          "columns": ["fecha_expiracion"]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "fk_sesiones_usuario_usuario",
+          "column": "usuario_id",
+          "references_table": "usuarios",
+          "references_column": "id",
+          "on_delete": "CASCADE"
+        }
+      ]
+    }
+  },
+  "views": {
+    "v_inventario_stock_bajo": {
+      "description": "Vista de inventario con stock bajo",
+      "columns": ["id", "nombre", "stock_actual", "stock_minimo", "sucursal_nombre", "categoria_nombre"],
+      "condition": "stock_actual <= stock_minimo AND activo = TRUE"
+    },
+    "v_pedidos_hoy": {
+      "description": "Vista de pedidos del día",
+      "columns": ["id", "numero_pedido", "cliente_nombre", "numero_mesa", "usuario_nombre", "sucursal_nombre", "estado", "tipo_pedido", "total", "fecha_pedido"],
+      "condition": "DATE(fecha_pedido) = CURDATE()"
+    },
+    "v_comandas_pendientes": {
+      "description": "Vista de comandas pendientes",
+      "columns": ["id", "numero_comanda", "numero_pedido", "estado", "prioridad", "tiempo_estimado", "usuario_asignado", "sucursal_nombre", "fecha_creacion", "minutos_transcurridos"],
+      "condition": "estado IN ('pendiente', 'en_preparacion')"
+    }
+  },
+  "procedures": {
+    "sp_crear_pedido": {
+      "description": "Procedimiento para crear un nuevo pedido",
+      "parameters": {
+        "inputs": [
+          "p_cliente_id INT",
+          "p_mesa_id INT", 
+          "p_usuario_id INT",
+          "p_sucursal_id INT",
+          "p_tipo_pedido VARCHAR(20)",
+          "p_notas TEXT"
+        ],
+        "outputs": [
+          "p_pedido_id INT",
+          "p_numero_pedido VARCHAR(50)"
+        ]
+      }
+    },
+    "sp_agregar_item_pedido": {
+      "description": "Procedimiento para agregar item a pedido",
+      "parameters": {
+        "inputs": [
+          "p_pedido_id INT",
+          "p_producto_id INT",
+          "p_cantidad INT",
+          "p_notas_item TEXT"
+        ]
+      }
+    },
+    "sp_actualizar_stock": {
+      "description": "Procedimiento para actualizar stock",
+      "parameters": {
+        "inputs": [
+          "p_producto_id INT",
+          "p_cantidad INT",
+          "p_tipo_movimiento VARCHAR(20)",
+          "p_motivo VARCHAR(200)",
+          "p_usuario_id INT",
+          "p_sucursal_id INT",
+          "p_pedido_id INT"
+        ]
+      }
+    }
+  },
+  "functions": {
+    "fn_ventas_dia": {
+      "description": "Función para calcular ventas del día",
+      "parameters": ["p_fecha DATE", "p_sucursal_id INT"],
+      "returns": "DECIMAL(10,2)"
+    },
+    "fn_pedidos_pendientes": {
+      "description": "Función para contar pedidos pendientes",
+      "parameters": ["p_sucursal_id INT"],
+      "returns": "INT"
+    }
+  },
+  "triggers": {
+    "tr_actualizar_stock_pedido": {
+      "description": "Trigger para actualizar stock al confirmar pedido",
+      "table": "pedidos",
+      "event": "AFTER UPDATE",
+      "condition": "OLD.estado = 'pendiente' AND NEW.estado = 'en_preparacion'"
+    },
+    "tr_liberar_mesa_pedido": {
+      "description": "Trigger para liberar mesa al completar pedido", 
+      "table": "pedidos",
+      "event": "AFTER UPDATE",
+      "condition": "NEW.estado = 'entregado' AND NEW.mesa_id IS NOT NULL"
+    }
+  },
+  "relationships": {
+    "one_to_many": [
+      {
+        "parent": "sucursales",
+        "child": "usuarios",
+        "description": "Una sucursal puede tener múltiples usuarios"
+      },
+      {
+        "parent": "sucursales", 
+        "child": "inventario",
+        "description": "Una sucursal puede tener múltiples productos en inventario"
+      },
+      {
+        "parent": "sucursales",
+        "child": "mesas", 
+        "description": "Una sucursal puede tener múltiples mesas"
+      },
+      {
+        "parent": "sucursales",
+        "child": "pedidos",
+        "description": "Una sucursal puede tener múltiples pedidos"
+      },
+      {
+        "parent": "categorias_productos",
+        "child": "inventario",
+        "description": "Una categoría puede tener múltiples productos"
+      },
+      {
+        "parent": "clientes",
+        "child": "pedidos",
+        "description": "Un cliente puede tener múltiples pedidos"
+      },
+      {
+        "parent": "mesas",
+        "child": "pedidos",
+        "description": "Una mesa puede tener múltiples pedidos"
+      },
+      {
+        "parent": "usuarios",
+        "child": "pedidos",
+        "description": "Un usuario puede atender múltiples pedidos"
+      },
+      {
+        "parent": "pedidos",
+        "child": "detalle_pedidos",
+        "description": "Un pedido puede tener múltiples items"
+      },
+      {
+        "parent": "inventario",
+        "child": "detalle_pedidos",
+        "description": "Un producto puede estar en múltiples pedidos"
+      },
+      {
+        "parent": "pedidos",
+        "child": "comandas",
+        "description": "Un pedido puede generar múltiples comandas"
+      },
+      {
+        "parent": "comandas",
+        "child": "detalle_comandas",
+        "description": "Una comanda puede tener múltiples items"
+      },
+      {
+        "parent": "detalle_pedidos",
+        "child": "detalle_comandas",
+        "description": "Un item de pedido puede estar en múltiples comandas"
+      },
+      {
+        "parent": "usuarios",
+        "child": "sesiones_usuario",
+        "description": "Un usuario puede tener múltiples sesiones"
+      },
+      {
+        "parent": "inventario",
+        "child": "movimientos_inventario",
+        "description": "Un producto puede tener múltiples movimientos"
+      }
+    ]
+  },
+  "business_rules": [
+    "Los dueños pueden estar asignados a múltiples sucursales",
+    "Cada usuario debe estar asociado a una sucursal específica",
+    "Las mesas deben tener un número único por sucursal",
+    "Los pedidos deben tener un número único generado automáticamente",
+    "El stock se actualiza automáticamente al confirmar pedidos",
+    "Las mesas se liberan automáticamente al entregar pedidos",
+    "Los movimientos de inventario se registran automáticamente",
+    "Las comandas se generan desde los pedidos para la cocina",
+    "Los precios se toman del inventario al momento del pedido",
+    "Las sesiones de usuario tienen fecha de expiración"
+  ],
+  "system_info": {
+    "version": "1.0",
+    "created_date": "2025-09-29",
+    "purpose": "Sistema de gestión integral para restaurantes con múltiples sucursales",
+    "features": [
+      "Gestión de múltiples sucursales",
+      "Control de inventario por sucursal", 
+      "Sistema de pedidos y comandas",
+      "Gestión de mesas y clientes",
+      "Control de usuarios y roles",
+      "Historial de movimientos",
+      "Reportes y vistas optimizadas",
+      "Triggers automáticos",
+      "Procedimientos almacenados"
+    ]
+  }
+}

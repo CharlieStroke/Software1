@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../componentsCss/comandas.css';
 
 const Comandas = () => {
     const navigate = useNavigate();
 
-    const [comandas, setComandasList] = useState([
+    const comandasHardcodeadas = [
         {
             id: 1,
             mesa: 5,
@@ -14,8 +14,7 @@ const Comandas = () => {
                 { nombre: 'Pizza Margherita', cantidad: 1, precio: 15.00 },
                 { nombre: 'Coca Cola', cantidad: 1, precio: 2.50 }
             ],
-            total: 17.50,
-            estado: 'pendiente'
+            total: 17.50
         },
         {
             id: 2,
@@ -25,8 +24,7 @@ const Comandas = () => {
                 { nombre: 'Hamburguesa', cantidad: 1, precio: 8.50 },
                 { nombre: 'Papas fritas', cantidad: 1, precio: 3.50 }
             ],
-            total: 12.00,
-            estado: 'en-preparacion'
+            total: 12.00
         },
         {
             id: 3,
@@ -36,19 +34,24 @@ const Comandas = () => {
                 { nombre: 'Ensalada César', cantidad: 1, precio: 7.00 },
                 { nombre: 'Agua', cantidad: 1, precio: 2.00 }
             ],
-            total: 9.00,
-            estado: 'listo'
+            total: 9.00
         }
-    ]);
+    ];
 
-    // Estados para el modal de nueva comanda
-    const [modalNuevaComanda, setModalNuevaComanda] = useState(false);
-    const [nuevaComanda, setNuevaComanda] = useState({
-        mesa: '',
-        cliente: '',
-        items: [''],
-        total: ''
-    });
+    const [comandas, setComandasList] = useState([]);
+
+    useEffect(() => {
+        // Cargar comandas de localStorage y combinar con hardcodeadas
+        const comandasGuardadas = JSON.parse(localStorage.getItem('comandas') || '[]');
+        setComandasList([...comandasHardcodeadas, ...comandasGuardadas]);
+    }, []);
+
+
+
+    // Estados para el modal de edición de productos
+    const [modalEditarProductos, setModalEditarProductos] = useState(false);
+    const [comandaEditando, setComandaEditando] = useState(null);
+    const [productosEditados, setProductosEditados] = useState([]);
 
     // Productos disponibles para la comanda
     const productosDisponibles = [
@@ -62,45 +65,67 @@ const Comandas = () => {
         { nombre: 'Cerveza', precio: 4.00 }
     ];
 
-    const cambiarEstado = (id, nuevoEstado) => {
-        setComandasList(comandas.map(comanda => 
-            comanda.id === id ? { ...comanda, estado: nuevoEstado } : comanda
-        ));
-    };
 
-    const getEstadoClass = (estado) => {
-        switch(estado) {
-            case 'pendiente': return 'estado-pendiente';
-            case 'en-preparacion': return 'estado-preparacion';
-            case 'listo': return 'estado-listo';
-            default: return '';
-        }
-    };
 
     const verDetalles = (id) => {
         navigate(`/comandas/detalle/${id}`);
     };
 
-    // Funciones para manejar el modal de nueva comanda
+    // Funciones para editar productos
+    const abrirModalEditarProductos = (comanda) => {
+        setComandaEditando(comanda);
+        setProductosEditados([...comanda.productos]);
+        setModalEditarProductos(true);
+    };
 
+    const cerrarModalEditarProductos = () => {
+        setModalEditarProductos(false);
+        setComandaEditando(null);
+        setProductosEditados([]);
+    };
 
+    const actualizarProductoEditado = (index, campo, valor) => {
+        const nuevosProductos = [...productosEditados];
+        nuevosProductos[index] = { ...nuevosProductos[index], [campo]: valor };
+        setProductosEditados(nuevosProductos);
+    };
+
+    const agregarProductoEditado = () => {
+        setProductosEditados([...productosEditados, { nombre: '', cantidad: 1, precio: 0 }]);
+    };
+
+    const eliminarProductoEditado = (index) => {
+        if (productosEditados.length > 1) {
+            setProductosEditados(productosEditados.filter((_, i) => i !== index));
+        }
+    };
+
+    const guardarCambiosProductos = () => {
+        const totalNuevo = productosEditados.reduce((total, producto) => total + (producto.precio * producto.cantidad), 0);
+        setComandasList(comandas.map(comanda =>
+            comanda.id === comandaEditando.id
+                ? { ...comanda, productos: productosEditados, total: totalNuevo }
+                : comanda
+        ));
+        cerrarModalEditarProductos();
+    };
 
 
 
     return (
         <div className="comandas-container">
-            
-            <div className="comandas-grid">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h1>Gestión de Comandas</h1>
+            </div>
+
+            <div className="comandas-list">
                 {comandas.map(comanda => (
-                    <div key={comanda.id} className={`comanda-card ${getEstadoClass(comanda.estado)}`}>
-                        <div className="comanda-header">
+                    <div key={comanda.id} className="comanda-item">
+                        <div className="comanda-info">
                             <span className="mesa-number">Mesa {comanda.mesa}</span>
-                            <span className={`estado-badge ${getEstadoClass(comanda.estado)}`}>
-                                {comanda.estado.replace('-', ' ').toUpperCase()}
-                            </span>
                         </div>
-                        
-                        <div className="comanda-body">
+
+                        <div className="comanda-details">
                             <h4>{comanda.nombrePedido}</h4>
                             <ul className="items-list">
                                 {comanda.productos.map((producto, index) => (
@@ -113,7 +138,7 @@ const Comandas = () => {
                                 Total: ${comanda.total.toFixed(2)}
                             </div>
                         </div>
-                        
+
                         <div className="comanda-actions">
                             <button
                                 onClick={() => verDetalles(comanda.id)}
@@ -121,94 +146,53 @@ const Comandas = () => {
                             >
                                 Ver Detalles
                             </button>
-                            {comanda.estado === 'pendiente' && (
-                                <button
-                                    onClick={() => cambiarEstado(comanda.id, 'en-preparacion')}
-                                    className="btn-accion btn-preparar"
-                                >
-                                    Preparar
-                                </button>
-                            )}
-                            {comanda.estado === 'en-preparacion' && (
-                                <button
-                                    onClick={() => cambiarEstado(comanda.id, 'listo')}
-                                    className="btn-accion btn-listo"
-                                >
-                                    Marcar Listo
-                                </button>
-                            )}
-                            {comanda.estado === 'listo' && (
-                                <button
-                                    onClick={() => cambiarEstado(comanda.id, 'entregado')}
-                                    className="btn-accion btn-entregar"
-                                >
-                                    Entregar
-                                </button>
-                            )}
+                            <button
+                                onClick={() => abrirModalEditarProductos(comanda)}
+                                className="btn-accion btn-preparar"
+                            >
+                                Editar Productos
+                            </button>
                         </div>
                     </div>
                 ))}
             </div>
             
 
-            {/* Modal para agregar nueva comanda */}
-            {modalNuevaComanda && (
-                <div className="modal-overlay" onClick={cerrarModalNuevaComanda}>
+
+
+            {/* Modal para editar productos */}
+            {modalEditarProductos && (
+                <div className="modal-overlay" onClick={cerrarModalEditarProductos}>
                     <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>Nueva Comanda</h3>
-                            <button className="modal-close" onClick={cerrarModalNuevaComanda}>×</button>
+                            <h3>Editar Productos - {comandaEditando?.nombrePedido}</h3>
+                            <button className="modal-close" onClick={cerrarModalEditarProductos}>×</button>
                         </div>
-                        
+
                         <div className="modal-body">
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="mesa-comanda">Mesa:</label>
-                                    <input 
-                                        type="number"
-                                        id="mesa-comanda"
-                                        value={nuevaComanda.mesa}
-                                        onChange={(e) => setNuevaComanda({...nuevaComanda, mesa: e.target.value})}
-                                        className="form-input"
-                                        placeholder="Número de mesa"
-                                        min="1"
-                                    />
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="cliente-comanda">Cliente:</label>
-                                    <input 
-                                        type="text"
-                                        id="cliente-comanda"
-                                        value={nuevaComanda.cliente}
-                                        onChange={(e) => setNuevaComanda({...nuevaComanda, cliente: e.target.value})}
-                                        className="form-input"
-                                        placeholder="Nombre del cliente"
-                                    />
-                                </div>
-                            </div>
-                            
                             <div className="form-group">
-                                <label>Items de la comanda:</label>
+                                <label>Productos de la comanda:</label>
                                 <div className="items-container">
-                                    {nuevaComanda.items.map((item, index) => (
+                                    {productosEditados.map((producto, index) => (
                                         <div key={index} className="item-row">
-                                            <select 
-                                                value={item}
-                                                onChange={(e) => actualizarItem(index, e.target.value)}
-                                                className="form-input item-select"
-                                            >
-                                                <option value="">Seleccione un producto</option>
-                                                {productosDisponibles.map((producto, i) => (
-                                                    <option key={i} value={producto.nombre}>
-                                                        {producto.nombre} - ${producto.precio}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {nuevaComanda.items.length > 1 && (
-                                                <button 
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                                                <span style={{ fontWeight: '500', minWidth: '150px' }}>{producto.nombre}</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <label style={{ fontSize: '0.9rem', color: '#666' }}>Cant:</label>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={producto.cantidad}
+                                                        onChange={(e) => actualizarProductoEditado(index, 'cantidad', parseInt(e.target.value) || 1)}
+                                                        className="form-input"
+                                                        style={{ width: '80px' }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            {productosEditados.length > 1 && (
+                                                <button
                                                     type="button"
-                                                    onClick={() => eliminarItem(index)}
+                                                    onClick={() => eliminarProductoEditado(index)}
                                                     className="btn-eliminar-item"
                                                 >
                                                     ×
@@ -217,34 +201,53 @@ const Comandas = () => {
                                         </div>
                                     ))}
                                 </div>
-                                <button 
-                                    type="button"
-                                    onClick={agregarItem}
-                                    className="btn-agregar-item"
-                                >
-                                    + Agregar Item
-                                </button>
+                                <div className="form-group">
+                                    <label>Agregar nuevo producto:</label>
+                                    <select
+                                        value=""
+                                        onChange={(e) => {
+                                            if (e.target.value) {
+                                                const prodSeleccionado = productosDisponibles.find(p => p.nombre === e.target.value);
+                                                if (prodSeleccionado) {
+                                                    setProductosEditados([...productosEditados, {
+                                                        nombre: prodSeleccionado.nombre,
+                                                        cantidad: 1,
+                                                        precio: prodSeleccionado.precio
+                                                    }]);
+                                                }
+                                                e.target.value = ""; // Reset select
+                                            }
+                                        }}
+                                        className="form-input"
+                                    >
+                                        <option value="">Seleccione un producto para agregar</option>
+                                        {productosDisponibles.map((prod, i) => (
+                                            <option key={i} value={prod.nombre}>
+                                                {prod.nombre} - ${prod.precio}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
-                            
+
                             <div className="total-preview">
-                                <strong>Total estimado: ${calcularTotal()}</strong>
+                                <strong>Total actualizado: ${productosEditados.reduce((total, producto) => total + (producto.precio * producto.cantidad), 0).toFixed(2)}</strong>
                             </div>
                         </div>
-                        
+
                         <div className="modal-footer">
-                            <button 
-                                onClick={cerrarModalNuevaComanda} 
+                            <button
+                                onClick={cerrarModalEditarProductos}
                                 className="btn-cancelar-modal"
                             >
                                 Cancelar
                             </button>
-                            <button 
-                                onClick={agregarComanda} 
+                            <button
+                                onClick={guardarCambiosProductos}
                                 className="btn-confirmar-modal"
-                                disabled={!nuevaComanda.mesa || !nuevaComanda.cliente || 
-                                         !nuevaComanda.items.some(item => item !== '')}
+                                disabled={productosEditados.some(p => !p.nombre)}
                             >
-                                Crear Comanda
+                                Guardar Cambios
                             </button>
                         </div>
                     </div>

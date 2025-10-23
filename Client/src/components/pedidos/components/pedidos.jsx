@@ -2,7 +2,7 @@ import { useState } from 'react';
 import '../componentsCss/pedidos.css';
 
 const Pedidos = () => {
-    
+
     const usuariosDisponibles = [
         { id: 1, nombre: 'Juan Pérez', rol: 'administrador' },
         { id: 2, nombre: 'María García', rol: 'mesero' },
@@ -11,9 +11,10 @@ const Pedidos = () => {
         { id: 5, nombre: 'Luis Martín', rol: 'mesero' }
     ];
 
+    const mesasDisponibles = [1, 2, 3, 4, 5, 6, 7];
+
     const [pedido, setPedido] = useState({
-        cliente: '',
-        telefono: '',
+        mesa: '',
         items: [''],
         usuarioAsignado: '',
         observaciones: '',
@@ -68,8 +69,7 @@ const Pedidos = () => {
 
     const limpiarFormulario = () => {
         setPedido({
-            cliente: '',
-            telefono: '',
+            mesa: '',
             items: [''],
             usuarioAsignado: '',
             observaciones: '',
@@ -78,15 +78,14 @@ const Pedidos = () => {
     };
 
     const tomarPedido = () => {
-        if (pedido.cliente && pedido.telefono && pedido.usuarioAsignado && 
+        if (pedido.mesa && pedido.usuarioAsignado &&
             pedido.items.some(item => item !== '')) {
-            
+
             const itemsValidos = pedido.items.filter(item => item !== '');
             const total = parseFloat(calcularTotal());
-            
+
             const pedidoCompleto = {
-                cliente: pedido.cliente,
-                telefono: pedido.telefono,
+                mesa: pedido.mesa,
                 items: itemsValidos,
                 usuarioAsignado: usuariosDisponibles.find(u => u.id === parseInt(pedido.usuarioAsignado)),
                 observaciones: pedido.observaciones,
@@ -95,10 +94,39 @@ const Pedidos = () => {
                 hora: new Date().toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})
             };
 
-            // Aquí normalmente enviarías el pedido a la cocina/base de datos
+            // Convertir pedido a comanda
+            const productosComanda = itemsValidos.map(item => {
+                const producto = productosDisponibles.find(p => p.nombre === item);
+                return {
+                    nombre: producto.nombre,
+                    cantidad: 1,
+                    precio: producto.precio
+                };
+            });
+
+            // Obtener comandas existentes de localStorage
+            const comandasExistentes = JSON.parse(localStorage.getItem('comandas') || '[]');
+
+            // Asignar ID automáticamente
+            const nuevoId = Math.max(...comandasExistentes.map(c => c.id), 0) + 1;
+
+            const nuevaComanda = {
+                id: nuevoId,
+                mesa: parseInt(pedido.mesa),
+                nombrePedido: `Pedido Mesa ${pedido.mesa}`,
+                productos: productosComanda,
+                total: total,
+                usuarioAsignado: usuariosDisponibles.find(u => u.id === parseInt(pedido.usuarioAsignado))?.nombre || 'Usuario no asignado',
+                observaciones: pedido.observaciones
+            };
+
+            // Guardar nueva comanda en localStorage
+            const nuevasComandas = [...comandasExistentes, nuevaComanda];
+            localStorage.setItem('comandas', JSON.stringify(nuevasComandas));
+
             console.log('Pedido tomado:', pedidoCompleto);
-            alert(`Pedido tomado exitosamente!\nCliente: ${pedido.cliente}\nTotal: $${total}`);
-            
+            alert(`Pedido tomado exitosamente!\nMesa: ${pedido.mesa}\nTotal: $${total}\nComanda creada para mesa ${pedido.mesa}`);
+
             limpiarFormulario();
         } else {
             alert('Por favor complete todos los campos obligatorios');
@@ -118,8 +146,25 @@ const Pedidos = () => {
 
                 <div className="seccion-atencion">
                     <div className="form-group">
+                        <label htmlFor="mesa">Mesa *</label>
+                        <select
+                            id="mesa"
+                            value={pedido.mesa}
+                            onChange={(e) => setPedido({...pedido, mesa: e.target.value})}
+                            className="form-input"
+                            required
+                        >
+                            <option value="">Seleccione una mesa</option>
+                            {mesasDisponibles.map(mesa => (
+                                <option key={mesa} value={mesa}>
+                                    Mesa {mesa}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="form-group">
                         <label htmlFor="usuario-asignado">Atendido por *</label>
-                        <select 
+                        <select
                             id="usuario-asignado"
                             value={pedido.usuarioAsignado}
                             onChange={(e) => setPedido({...pedido, usuarioAsignado: e.target.value})}
@@ -142,7 +187,7 @@ const Pedidos = () => {
                         {pedido.items.map((item, index) => (
                             <div key={index} className="item-row">
                                 <div className="item-numero">{index + 1}.</div>
-                                <select 
+                                <select
                                     value={item}
                                     onChange={(e) => actualizarItem(index, e.target.value)}
                                     className="form-input item-select"
@@ -155,13 +200,13 @@ const Pedidos = () => {
                                     ))}
                                 </select>
                                 <div className="item-precio">
-                                    {item && productosDisponibles.find(p => p.nombre === item) ? 
-                                        `$${productosDisponibles.find(p => p.nombre === item).precio}` : 
+                                    {item && productosDisponibles.find(p => p.nombre === item) ?
+                                        `$${productosDisponibles.find(p => p.nombre === item).precio}` :
                                         '$0.00'
                                     }
                                 </div>
                                 {pedido.items.length > 1 && (
-                                    <button 
+                                    <button
                                         type="button"
                                         onClick={() => eliminarItem(index)}
                                         className="btn-eliminar-item"
@@ -173,8 +218,8 @@ const Pedidos = () => {
                             </div>
                         ))}
                     </div>
-                    
-                    <button 
+
+                    <button
                         type="button"
                         onClick={agregarItem}
                         className="btn-agregar-item"
@@ -186,7 +231,7 @@ const Pedidos = () => {
                 <div className="seccion-observaciones">
                     <h3>Observaciones</h3>
                     <div className="form-group">
-                        <textarea 
+                        <textarea
                             value={pedido.observaciones}
                             onChange={(e) => setPedido({...pedido, observaciones: e.target.value})}
                             className="form-input textarea-observaciones"
@@ -197,16 +242,16 @@ const Pedidos = () => {
                 </div>
 
                 <div className="seccion-acciones">
-                    <button 
+                    <button
                         onClick={limpiarFormulario}
                         className="btn-limpiar"
                     >
                         Limpiar
                     </button>
-                    <button 
+                    <button
                         onClick={tomarPedido}
                         className="btn-tomar-pedido"
-                        disabled={!pedido.cliente || !pedido.telefono || !pedido.usuarioAsignado || 
+                        disabled={!pedido.mesa || !pedido.usuarioAsignado ||
                                  !pedido.items.some(item => item !== '')}
                     >
                         Tomar Pedido

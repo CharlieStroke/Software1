@@ -2,6 +2,8 @@
     padding: 2rem;
     background-color: var(--verde-fondo);
     min-height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .comandas-header {
@@ -9,12 +11,16 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .comandas-header h2 {
     color: var(--verde-oscuro);
     font-size: 2rem;
     margin: 0;
+    flex: 1;
+    min-width: 200px;
 }
 
 .btn-nueva-comanda {
@@ -26,6 +32,8 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .btn-nueva-comanda:hover {
@@ -33,36 +41,73 @@
     transform: translateY(-1px);
 }
 
-.comandas-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
-}
-
-.comanda-card {
-    background: var(--blanco);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px var(--sombra-verde);
-    border-left: 4px solid var(--verde-claro);
-    transition: transform 0.2s;
-}
-
-.comanda-card:hover {
-    transform: translateY(-2px);
-}
-
-.comanda-header {
+.comandas-list {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.comanda-item {
+    background: linear-gradient(135deg, var(--blanco) 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 123, 255, 0.1);
+    border-left: 5px solid var(--verde-principal);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+@media (min-width: 768px) {
+    .comanda-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.comanda-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--verde-principal), var(--verde-claro), var(--verde-principal));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.comanda-item:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.1);
+    border-color: var(--verde-principal);
+}
+
+.comanda-item:hover::before {
+    opacity: 1;
+}
+
+.comanda-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
 }
 
 .mesa-number {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     font-weight: bold;
     color: var(--verde-oscuro);
+    background: linear-gradient(45deg, var(--verde-principal), var(--verde-claro));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .estado-badge {
@@ -88,81 +133,114 @@
     color: var(--verde-oscuro);
 }
 
-.comanda-body h4 {
+.comanda-details h4 {
     color: var(--gris-oscuro);
     margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .items-list {
     list-style: none;
     padding: 0;
     margin: 1rem 0;
+    background: rgba(0, 123, 255, 0.05);
+    border-radius: 8px;
+    padding: 0.5rem;
 }
 
 .items-list li {
-    padding: 0.25rem 0;
+    padding: 0.5rem 0;
     color: var(--gris-medio);
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid rgba(0, 123, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.items-list li:last-child {
+    border-bottom: none;
 }
 
 .comanda-total {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: bold;
     color: var(--verde-principal);
     text-align: right;
     margin-top: 1rem;
+    background: linear-gradient(45deg, var(--verde-principal), var(--verde-claro));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .comanda-actions {
     margin-top: 1rem;
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+    .comanda-actions {
+        flex-direction: column;
+    }
 }
 
 .btn-accion {
     flex: 1;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 6px;
-    font-weight: 500;
+    border-radius: 8px;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-accion:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .btn-preparar {
-    background-color: #fdcb6e;
+    background: linear-gradient(45deg, #fdcb6e, #f39c12);
     color: #2d3436;
 }
 
 .btn-preparar:hover {
-    background-color: #f39c12;
+    background: linear-gradient(45deg, #f39c12, #e67e22);
 }
 
 .btn-listo {
-    background-color: var(--verde-claro);
+    background: linear-gradient(45deg, var(--verde-claro), var(--verde-principal));
     color: var(--blanco);
 }
 
 .btn-listo:hover {
-    background-color: var(--verde-principal);
+    background: linear-gradient(45deg, var(--verde-principal), var(--verde-oscuro));
 }
 
 .btn-entregar {
-    background-color: var(--verde-exito);
+    background: linear-gradient(45deg, var(--verde-exito), #27ae60);
     color: var(--blanco);
 }
 
 .btn-entregar:hover {
-    background-color: var(--verde-hover);
+    background: linear-gradient(45deg, #27ae60, #229954);
 }
 
 .btn-detalles {
-    background-color: var(--verde-principal);
+    background: linear-gradient(45deg, var(--verde-principal), var(--verde-oscuro));
     color: var(--blanco);
 }
 
 .btn-detalles:hover {
-    background-color: var(--verde-hover);
+    background: linear-gradient(45deg, var(--verde-oscuro), #2c5f2d);
 }
 
 /* Estilos para el modal */
@@ -177,19 +255,30 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    padding: 1rem;
+    box-sizing: border-box;
 }
 
 .modal-content {
     background: var(--blanco);
     border-radius: 12px;
-    width: 90%;
+    width: 100%;
     max-width: 500px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     overflow: hidden;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal-large {
     max-width: 600px;
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-width: none;
+    }
 }
 
 .modal-header {
@@ -236,6 +325,13 @@
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+    .modal-footer {
+        flex-direction: column;
+    }
 }
 
 /* Estilos para formularios */
@@ -259,6 +355,7 @@
     background-color: var(--blanco);
     color: var(--gris-oscuro);
     transition: border-color 0.2s;
+    box-sizing: border-box;
 }
 
 .form-input:focus {
@@ -270,6 +367,12 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Estilos específicos para items de comanda */

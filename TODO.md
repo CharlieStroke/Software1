@@ -1,3 +1,5 @@
-- [ ] Modificar pedidos.jsx para guardar nueva comanda en localStorage al tomar pedido
-- [ ] Modificar comandas.jsx para cargar comandas de localStorage y combinar con hardcodeadas
-- [ ] Probar la funcionalidad
+- [ ] Add fecha field to hardcoded comandas in comandas.jsx
+- [ ] Add sortOrder and searchTerm states
+- [ ] Add filter and sort logic functions
+- [ ] Update JSX to include search input and sort buttons in header
+- [ ] Update comandas.css for search/sort UI styles

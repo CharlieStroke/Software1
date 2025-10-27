@@ -17,6 +17,7 @@ const Pedidos = () => {
         mesa: '',
         items: [''],
         usuarioAsignado: '',
+        cliente: '',
         observaciones: '',
         total: 0
     });
@@ -72,13 +73,14 @@ const Pedidos = () => {
             mesa: '',
             items: [''],
             usuarioAsignado: '',
+            cliente: '',
             observaciones: '',
             total: 0
         });
     };
 
     const tomarPedido = () => {
-        if (pedido.mesa && pedido.usuarioAsignado &&
+        if (pedido.mesa && pedido.usuarioAsignado && pedido.cliente &&
             pedido.items.some(item => item !== '')) {
 
             const itemsValidos = pedido.items.filter(item => item !== '');
@@ -86,6 +88,7 @@ const Pedidos = () => {
 
             const pedidoCompleto = {
                 mesa: pedido.mesa,
+                cliente: pedido.cliente,
                 items: itemsValidos,
                 usuarioAsignado: usuariosDisponibles.find(u => u.id === parseInt(pedido.usuarioAsignado)),
                 observaciones: pedido.observaciones,
@@ -113,7 +116,7 @@ const Pedidos = () => {
             const nuevaComanda = {
                 id: nuevoId,
                 mesa: parseInt(pedido.mesa),
-                nombrePedido: `Pedido Mesa ${pedido.mesa}`,
+                nombrePedido: `Pedido de ${pedido.cliente}`,
                 productos: productosComanda,
                 total: total,
                 usuarioAsignado: usuariosDisponibles.find(u => u.id === parseInt(pedido.usuarioAsignado))?.nombre || 'Usuario no asignado',
@@ -125,7 +128,7 @@ const Pedidos = () => {
             localStorage.setItem('comandas', JSON.stringify(nuevasComandas));
 
             console.log('Pedido tomado:', pedidoCompleto);
-            alert(`Pedido tomado exitosamente!\nMesa: ${pedido.mesa}\nTotal: $${total}\nComanda creada para mesa ${pedido.mesa}`);
+            alert(`Pedido tomado exitosamente!\nCliente: ${pedido.cliente}\nMesa: ${pedido.mesa}\nTotal: $${total}\nComanda creada para ${pedido.cliente}`);
 
             limpiarFormulario();
         } else {
@@ -161,6 +164,18 @@ const Pedidos = () => {
                                 </option>
                             ))}
                         </select>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="cliente">Nombre del Cliente *</label>
+                        <input
+                            type="text"
+                            id="cliente"
+                            value={pedido.cliente}
+                            onChange={(e) => setPedido({...pedido, cliente: e.target.value})}
+                            className="form-input"
+                            placeholder="Ingrese el nombre del cliente"
+                            required
+                        />
                     </div>
                     <div className="form-group">
                         <label htmlFor="usuario-asignado">Atendido por *</label>
@@ -251,7 +266,7 @@ const Pedidos = () => {
                     <button
                         onClick={tomarPedido}
                         className="btn-tomar-pedido"
-                        disabled={!pedido.mesa || !pedido.usuarioAsignado ||
+                        disabled={!pedido.mesa || !pedido.usuarioAsignado || !pedido.cliente ||
                                  !pedido.items.some(item => item !== '')}
                     >
                         Tomar Pedido

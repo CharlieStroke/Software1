@@ -10,6 +10,7 @@ const Comandas = () => {
             id: 1,
             mesa: 5,
             nombrePedido: 'Pedido Juan Pérez',
+            fecha: '2023-10-01',
             productos: [
                 { nombre: 'Pizza Margherita', cantidad: 1, precio: 15.00 },
                 { nombre: 'Coca Cola', cantidad: 1, precio: 2.50 }
@@ -20,6 +21,7 @@ const Comandas = () => {
             id: 2,
             mesa: 3,
             nombrePedido: 'Pedido María García',
+            fecha: '2023-10-02',
             productos: [
                 { nombre: 'Hamburguesa', cantidad: 1, precio: 8.50 },
                 { nombre: 'Papas fritas', cantidad: 1, precio: 3.50 }
@@ -30,6 +32,7 @@ const Comandas = () => {
             id: 3,
             mesa: 8,
             nombrePedido: 'Pedido Carlos López',
+            fecha: '2023-10-03',
             productos: [
                 { nombre: 'Ensalada César', cantidad: 1, precio: 7.00 },
                 { nombre: 'Agua', cantidad: 1, precio: 2.00 }
@@ -39,10 +42,17 @@ const Comandas = () => {
     ];
 
     const [comandas, setComandasList] = useState([]);
+    const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     useEffect(() => {
         // Cargar comandas de localStorage y combinar con hardcodeadas
-        const comandasGuardadas = JSON.parse(localStorage.getItem('comandas') || '[]');
+        const comandasGuardadas = JSON.parse(localStorage.getItem('comandas') || '[]').map(comanda => ({
+            ...comanda,
+            fecha: comanda.fecha || new Date().toISOString().split('T')[0] // Ensure fecha exists
+        }));
         setComandasList([...comandasHardcodeadas, ...comandasGuardadas]);
     }, []);
 
@@ -110,52 +120,116 @@ const Comandas = () => {
         cerrarModalEditarProductos();
     };
 
+    // Funciones para filtrar y ordenar
+    const filteredAndSortedComandas = comandas
+        .filter(comanda =>
+            searchTerm === '' || comanda.fecha === searchTerm
+        )
+        .sort((a, b) => {
+            const dateA = new Date(a.fecha);
+            const dateB = new Date(b.fecha);
+            return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        });
+
+    // Paginación
+    const totalPages = Math.ceil(filteredAndSortedComandas.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedComandas = filteredAndSortedComandas.slice(startIndex, startIndex + itemsPerPage);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+
 
 
     return (
         <div className="comandas-container">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <h1>Gestión de Comandas</h1>
+                <div className="search-sort-container">
+                    <input
+                        type="date"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                    <div className="sort-buttons">
+                        <button
+                            onClick={() => setSortOrder('asc')}
+                            className={`btn-sort ${sortOrder === 'asc' ? 'active' : ''}`}
+                        >
+                            Más antiguo
+                        </button>
+                        <button
+                            onClick={() => setSortOrder('desc')}
+                            className={`btn-sort ${sortOrder === 'desc' ? 'active' : ''}`}
+                        >
+                            Más reciente
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div className="comandas-list">
-                {comandas.map(comanda => (
-                    <div key={comanda.id} className="comanda-item">
-                        <div className="comanda-info">
-                            <span className="mesa-number">Mesa {comanda.mesa}</span>
-                        </div>
+                {paginatedComandas.length > 0 ? (
+                    paginatedComandas.map(comanda => (
+                        <div key={comanda.id} className="comanda-item">
+                            <div className="comanda-info">
+                                <span className="mesa-number">Mesa {comanda.mesa}</span>
+                            </div>
 
-                        <div className="comanda-details">
-                            <h4>{comanda.nombrePedido}</h4>
-                            <ul className="items-list">
-                                {comanda.productos.map((producto, index) => (
-                                    <li key={index}>
-                                        {producto.nombre} x{producto.cantidad} - ${producto.precio.toFixed(2)}
-                                    </li>
-                                ))}
-                            </ul>
-                            <div className="comanda-total">
-                                Total: ${comanda.total.toFixed(2)}
+                            <div className="comanda-details">
+                                <h4>{comanda.nombrePedido}</h4>
+                                <ul className="items-list">
+                                    {comanda.productos.map((producto, index) => (
+                                        <li key={index}>
+                                            {producto.nombre} x{producto.cantidad} - ${producto.precio.toFixed(2)}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="comanda-total">
+                                    Total: ${comanda.total.toFixed(2)}
+                                </div>
+                            </div>
+
+                            <div className="comanda-actions">
+                                <button
+                                    onClick={() => verDetalles(comanda.id)}
+                                    className="btn-accion btn-detalles"
+                                >
+                                    Ver Detalles
+                                </button>
+                                <button
+                                    onClick={() => abrirModalEditarProductos(comanda)}
+                                    className="btn-accion btn-preparar"
+                                >
+                                    Editar Productos
+                                </button>
                             </div>
                         </div>
-
-                        <div className="comanda-actions">
-                            <button
-                                onClick={() => verDetalles(comanda.id)}
-                                className="btn-accion btn-detalles"
-                            >
-                                Ver Detalles
-                            </button>
-                            <button
-                                onClick={() => abrirModalEditarProductos(comanda)}
-                                className="btn-accion btn-preparar"
-                            >
-                                Editar Productos
-                            </button>
+                    ))
+                ) : (
+                    searchTerm && (
+                        <div className="no-comandas-message">
+                            No existen comandas en esta fecha seleccionada
                         </div>
-                    </div>
-                ))}
+                    )
+                )}
             </div>
+
+            {totalPages > 1 && (
+                <div className="pagination">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                            key={index + 1}
+                            onClick={() => handlePageChange(index + 1)}
+                            className={`btn-pagination ${currentPage === index + 1 ? 'active' : ''}`}
+                        >
+                            {index + 1}
+                        </button>
+                    ))}
+                </div>
+            )}
             
 
 

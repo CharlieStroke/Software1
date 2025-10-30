@@ -246,3 +246,45 @@
         text-align: center;
     }
 }
+
+/* Estilos para validación */
+.form-input.error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.1rem rgba(220, 53, 69, 0.25);
+}
+
+.form-input.error:focus, .form-textarea.error:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-textarea.error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.1rem rgba(220, 53, 69, 0.25);
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.item-input-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.btn-tomar-pedido:disabled {
+    background-color: var(--gris-claro);
+    color: var(--gris-medio);
+    cursor: not-allowed;
+    opacity: 0.6;
+}

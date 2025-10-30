@@ -1,22 +1,51 @@
 import React, { useState, useEffect } from 'react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 import '../componentsCss/sucursal.css';
+
+// Esquema de validación para sucursales
+const sucursalValidationSchema = Yup.object({
+    nombre: Yup.string()
+        .required('El nombre de la sucursal es obligatorio')
+        .min(3, 'El nombre debe tener al menos 3 caracteres')
+        .max(150, 'El nombre no puede exceder 150 caracteres'),
+    direccion: Yup.string()
+        .required('La dirección es obligatoria')
+        .min(10, 'La dirección debe tener al menos 10 caracteres')
+        .max(200, 'La dirección no puede exceder 200 caracteres'),
+    telefono: Yup.string()
+        .matches(/^\+?[0-9\s-]{10,20}$/, 'Formato de teléfono inválido (ej: +57 601 234 5678)')
+        .min(10, 'El teléfono debe tener al menos 10 dígitos'),
+    email: Yup.string()
+        .email('Formato de email inválido')
+        .max(150, 'El email no puede exceder 150 caracteres'),
+    dueño: Yup.string()
+        .min(3, 'El nombre del dueño debe tener al menos 3 caracteres')
+        .max(200, 'El nombre del dueño no puede exceder 200 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios'),
+    horarioApertura: Yup.string()
+        .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido (HH:MM)'),
+    horarioCierre: Yup.string()
+        .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido (HH:MM)')
+        .test('mayor-que-apertura', 'El horario de cierre debe ser posterior al de apertura',
+            function(value) {
+                const { horarioApertura } = this.parent;
+                if (!horarioApertura || !value) return true;
+                return value > horarioApertura;
+            }),
+    capacidad: Yup.number()
+        .integer('La capacidad debe ser un número entero')
+        .min(1, 'La capacidad mínima es 1 persona')
+        .max(1000, 'La capacidad máxima es 1,000 personas'),
+    fechaApertura: Yup.date()
+        .max(new Date(), 'La fecha de apertura no puede ser futura'),
+    activa: Yup.boolean()
+});
 
 export default function Sucursal() {
   const [sucursales, setSucursales] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [sucursalEditando, setSucursalEditando] = useState(null);
-  const [formData, setFormData] = useState({
-    nombre: '',
-    direccion: '',
-    telefono: '',
-    email: '',
-    dueño: '',
-    horarioApertura: '',
-    horarioCierre: '',
-    capacidad: '',
-    fechaApertura: '',
-    activa: true
-  });
 
   useEffect(() => {
     const sucursalesIniciales = [
@@ -64,110 +93,46 @@ export default function Sucursal() {
   }, []);
 
   const abrirModal = (sucursal = null) => {
-    if (sucursal) {
-      setSucursalEditando(sucursal);
-      setFormData({
-        nombre: sucursal.nombre,
-        direccion: sucursal.direccion,
-        telefono: sucursal.telefono,
-        email: sucursal.email,
-        dueño: sucursal.dueño,
-        horarioApertura: sucursal.horarioApertura,
-        horarioCierre: sucursal.horarioCierre,
-        capacidad: sucursal.capacidad.toString(),
-        fechaApertura: sucursal.fechaApertura,
-        activa: sucursal.activa
-      });
-    } else {
-      setSucursalEditando(null);
-      setFormData({
-        nombre: '',
-        direccion: '',
-        telefono: '',
-        email: '',
-        dueño: '',
-        horarioApertura: '',
-        horarioCierre: '',
-        capacidad: '',
-        fechaApertura: '',
-        activa: true
-      });
-    }
+    setSucursalEditando(sucursal);
     setMostrarModal(true);
   };
 
   const cerrarModal = () => {
     setMostrarModal(false);
     setSucursalEditando(null);
-    setFormData({
-      nombre: '',
-      direccion: '',
-      telefono: '',
-      email: '',
-      dueño: '',
-      horarioApertura: '',
-      horarioCierre: '',
-      capacidad: '',
-      fechaApertura: '',
-      activa: true
-    });
   };
 
-  const manejarInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const manejarSubmit = (e) => {
-    e.preventDefault();
-    
-    if (!formData.nombre.trim() || !formData.direccion.trim()) {
-      alert('Por favor, completa los campos obligatorios (nombre y dirección)');
-      return;
-    }
-
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      alert('Por favor, ingresa un email válido');
-      return;
-    }
-
-    if (formData.capacidad && (isNaN(formData.capacidad) || formData.capacidad <= 0)) {
-      alert('La capacidad debe ser un número positivo');
-      return;
-    }
-
-    if (formData.horarioApertura && formData.horarioCierre) {
-      if (formData.horarioApertura >= formData.horarioCierre) {
-        alert('El horario de apertura debe ser anterior al horario de cierre');
-        return;
-      }
-    }
-
-    const datosParaGuardar = {
-      ...formData,
-      capacidad: formData.capacidad ? parseInt(formData.capacidad) : 0
-    };
-
-    if (sucursalEditando) {
-      // Editar sucursal existente
-      setSucursales(prev => prev.map(sucursal => 
-        sucursal.id === sucursalEditando.id 
-          ? { ...sucursal, ...datosParaGuardar }
-          : sucursal
-      ));
-    } else {
-      // Agregar nueva sucursal
-      const nuevaSucursal = {
-        id: Date.now(),
-        ...datosParaGuardar
+  const guardarSucursal = async (valores, { resetForm }) => {
+    try {
+      await sucursalValidationSchema.validate(valores, { abortEarly: false });
+      
+      const datosParaGuardar = {
+        ...valores,
+        capacidad: valores.capacidad ? parseInt(valores.capacidad) : 0
       };
-      setSucursales(prev => [...prev, nuevaSucursal]);
-    }
 
-    cerrarModal();
+      if (sucursalEditando) {
+        // Editar sucursal existente
+        setSucursales(prev => prev.map(sucursal => 
+          sucursal.id === sucursalEditando.id 
+            ? { ...sucursal, ...datosParaGuardar }
+            : sucursal
+        ));
+      } else {
+        // Agregar nueva sucursal
+        const nuevaSucursal = {
+          id: Date.now(),
+          ...datosParaGuardar
+        };
+        setSucursales(prev => [...prev, nuevaSucursal]);
+      }
+
+      resetForm();
+      cerrarModal();
+    } catch (error) {
+      console.error('Error al guardar sucursal:', error);
+      throw error;
+    }
   };
 
   const eliminarSucursal = (id) => {
@@ -250,135 +215,158 @@ export default function Sucursal() {
               <h2>{sucursalEditando ? 'Editar Sucursal' : 'Agregar Sucursal'}</h2>
               <button className="btn-cerrar" onClick={cerrarModal}>×</button>
             </div>
-            <form onSubmit={manejarSubmit} className="sucursal-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="nombre">Nombre de la Sucursal *</label>
-                  <input
-                    type="text"
-                    id="nombre"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={manejarInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="dueño">Dueño</label>
-                  <input
-                    type="text"
-                    id="dueño"
-                    name="dueño"
-                    value={formData.dueño}
-                    onChange={manejarInputChange}
-                  />
-                </div>
-              </div>
+            
+            <Formik
+              initialValues={{
+                nombre: sucursalEditando?.nombre || '',
+                direccion: sucursalEditando?.direccion || '',
+                telefono: sucursalEditando?.telefono || '',
+                email: sucursalEditando?.email || '',
+                dueño: sucursalEditando?.dueño || '',
+                horarioApertura: sucursalEditando?.horarioApertura || '',
+                horarioCierre: sucursalEditando?.horarioCierre || '',
+                capacidad: sucursalEditando?.capacidad || '',
+                fechaApertura: sucursalEditando?.fechaApertura || '',
+                activa: sucursalEditando?.activa ?? true
+              }}
+              validationSchema={sucursalValidationSchema}
+              onSubmit={guardarSucursal}
+              enableReinitialize
+            >
+              {({ errors, touched, isSubmitting }) => (
+                <Form className="sucursal-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="nombre">Nombre de la Sucursal *</label>
+                      <Field
+                        type="text"
+                        id="nombre"
+                        name="nombre"
+                        className={`form-input ${errors.nombre && touched.nombre ? 'error' : ''}`}
+                        placeholder="Ej: Sucursal Centro"
+                      />
+                      <ErrorMessage name="nombre" component="span" className="error-message" />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="dueño">Dueño</label>
+                      <Field
+                        type="text"
+                        id="dueño"
+                        name="dueño"
+                        className={`form-input ${errors.dueño && touched.dueño ? 'error' : ''}`}
+                        placeholder="Ej: Ana García"
+                      />
+                      <ErrorMessage name="dueño" component="span" className="error-message" />
+                    </div>
+                  </div>
 
-              <div className="form-group">
-                <label htmlFor="direccion">Dirección *</label>
-                <input
-                  type="text"
-                  id="direccion"
-                  name="direccion"
-                  value={formData.direccion}
-                  onChange={manejarInputChange}
-                  required
-                />
-              </div>
+                  <div className="form-group">
+                    <label htmlFor="direccion">Dirección *</label>
+                    <Field
+                      type="text"
+                      id="direccion"
+                      name="direccion"
+                      className={`form-input ${errors.direccion && touched.direccion ? 'error' : ''}`}
+                      placeholder="Ej: Calle 50 #12-34, Centro"
+                    />
+                    <ErrorMessage name="direccion" component="span" className="error-message" />
+                  </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="telefono">Teléfono</label>
-                  <input
-                    type="tel"
-                    id="telefono"
-                    name="telefono"
-                    value={formData.telefono}
-                    onChange={manejarInputChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={manejarInputChange}
-                  />
-                </div>
-              </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="telefono">Teléfono</label>
+                      <Field
+                        type="tel"
+                        id="telefono"
+                        name="telefono"
+                        className={`form-input ${errors.telefono && touched.telefono ? 'error' : ''}`}
+                        placeholder="Ej: +57 601 234 5678"
+                      />
+                      <ErrorMessage name="telefono" component="span" className="error-message" />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="email">Email</label>
+                      <Field
+                        type="email"
+                        id="email"
+                        name="email"
+                        className={`form-input ${errors.email && touched.email ? 'error' : ''}`}
+                        placeholder="Ej: centro@restaurant.com"
+                      />
+                      <ErrorMessage name="email" component="span" className="error-message" />
+                    </div>
+                  </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="horarioApertura">Horario de Apertura</label>
-                  <input
-                    type="time"
-                    id="horarioApertura"
-                    name="horarioApertura"
-                    value={formData.horarioApertura}
-                    onChange={manejarInputChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="horarioCierre">Horario de Cierre</label>
-                  <input
-                    type="time"
-                    id="horarioCierre"
-                    name="horarioCierre"
-                    value={formData.horarioCierre}
-                    onChange={manejarInputChange}
-                  />
-                </div>
-              </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="horarioApertura">Horario de Apertura</label>
+                      <Field
+                        type="time"
+                        id="horarioApertura"
+                        name="horarioApertura"
+                        className={`form-input ${errors.horarioApertura && touched.horarioApertura ? 'error' : ''}`}
+                      />
+                      <ErrorMessage name="horarioApertura" component="span" className="error-message" />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="horarioCierre">Horario de Cierre</label>
+                      <Field
+                        type="time"
+                        id="horarioCierre"
+                        name="horarioCierre"
+                        className={`form-input ${errors.horarioCierre && touched.horarioCierre ? 'error' : ''}`}
+                      />
+                      <ErrorMessage name="horarioCierre" component="span" className="error-message" />
+                    </div>
+                  </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="capacidad">Capacidad (personas)</label>
-                  <input
-                    type="number"
-                    id="capacidad"
-                    name="capacidad"
-                    value={formData.capacidad}
-                    onChange={manejarInputChange}
-                    min="1"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="fechaApertura">Fecha de Apertura</label>
-                  <input
-                    type="date"
-                    id="fechaApertura"
-                    name="fechaApertura"
-                    value={formData.fechaApertura}
-                    onChange={manejarInputChange}
-                  />
-                </div>
-              </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="capacidad">Capacidad (personas)</label>
+                      <Field
+                        type="number"
+                        id="capacidad"
+                        name="capacidad"
+                        className={`form-input ${errors.capacidad && touched.capacidad ? 'error' : ''}`}
+                        placeholder="Ej: 80"
+                        min="1"
+                      />
+                      <ErrorMessage name="capacidad" component="span" className="error-message" />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="fechaApertura">Fecha de Apertura</label>
+                      <Field
+                        type="date"
+                        id="fechaApertura"
+                        name="fechaApertura"
+                        className={`form-input ${errors.fechaApertura && touched.fechaApertura ? 'error' : ''}`}
+                      />
+                      <ErrorMessage name="fechaApertura" component="span" className="error-message" />
+                    </div>
+                  </div>
 
-              <div className="form-group checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="activa"
-                    checked={formData.activa}
-                    onChange={manejarInputChange}
-                  />
-                  <span className="checkmark"></span>
-                  Sucursal Activa
-                </label>
-              </div>
+                  <div className="form-group checkbox-group">
+                    <label className="checkbox-label">
+                      <Field
+                        type="checkbox"
+                        name="activa"
+                      />
+                      <span className="checkmark"></span>
+                      Sucursal Activa
+                    </label>
+                  </div>
 
-              <div className="form-actions">
-                <button type="button" className="btn-cancelar" onClick={cerrarModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-guardar">
-                  {sucursalEditando ? 'Actualizar' : 'Guardar'}
-                </button>
-              </div>
-            </form>
+                  <div className="form-actions">
+                    <button type="button" className="btn-cancelar" onClick={cerrarModal}>
+                      Cancelar
+                    </button>
+                    <button type="submit" className="btn-guardar" disabled={isSubmitting}>
+                      {isSubmitting ? 'Guardando...' : (sucursalEditando ? 'Actualizar' : 'Guardar')}
+                    </button>
+                  </div>
+                </Form>
+              )}
+            </Formik>
           </div>
         </div>
       )}

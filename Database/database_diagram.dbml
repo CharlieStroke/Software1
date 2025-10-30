@@ -1,0 +1,242 @@
+// ================================================
+// SISTEMA DE GESTIÓN DE RESTAURANTES
+// Diagrama Entidad-Relación en formato DBML
+// Para usar en: https://dbdiagram.io/
+// ================================================
+
+Project restaurant_management {
+  database_type: 'MySQL'
+  Note: '''
+    Sistema de gestión integral para restaurantes
+    Incluye manejo de sucursales, inventario, pedidos y comandas
+  '''
+}
+
+// ================================================
+// TABLAS PRINCIPALES
+// ================================================
+
+Table sucursales {
+  id int [pk, increment]
+  nombre varchar(150) [not null]
+  direccion text [not null]
+  telefono varchar(20)
+  email varchar(150)
+  gerente varchar(200)
+  horario_apertura time
+  horario_cierre time
+  capacidad int [default: 0]
+  fecha_apertura date
+  activa boolean [default: true]
+  fecha_creacion timestamp [default: `CURRENT_TIMESTAMP`]
+  fecha_actualizacion timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  Note: 'Gestión de sucursales/restaurantes del sistema'
+}
+
+Table usuarios {
+  id int [pk, increment]
+  nombre varchar(100) [not null]
+  apellido varchar(100) [not null]
+  email varchar(150) [unique, not null]
+  password varchar(255) [not null]
+  telefono varchar(20)
+  rol varchar(20) [not null, default: 'mesero', note: 'admin, gerente, mesero, cocinero, cajero']
+  activo boolean [default: true]
+  fecha_creacion timestamp [default: `CURRENT_TIMESTAMP`]
+  fecha_actualizacion timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  Note: 'Gestión de empleados del sistema'
+}
+
+Table categorias_productos {
+  id int [pk, increment]
+  nombre varchar(100) [not null, unique]
+  descripcion text
+  activa boolean [default: true]
+  fecha_creacion timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  Note: 'Clasificación de productos del inventario'
+}
+
+Table inventario {
+  id int [pk, increment]
+  nombre varchar(150) [not null]
+  descripcion text
+  categoria_id int [ref: > categorias_productos.id]
+  precio decimal(10,2) [not null, default: 0.00]
+  costo decimal(10,2) [not null, default: 0.00]
+  stock_actual int [not null, default: 0]
+  stock_minimo int [not null, default: 0]
+  unidad_medida varchar(20) [not null, default: 'unidad', note: 'unidad, kg, gr, lt, ml, porcion']
+  sucursal_id int [ref: > sucursales.id]
+  activo boolean [default: true]
+  fecha_creacion timestamp [default: `CURRENT_TIMESTAMP`]
+  fecha_actualizacion timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  Note: 'Gestión de productos e ingredientes'
+}
+
+Table clientes {
+  id int [pk, increment]
+  nombre varchar(100) [not null]
+  apellido varchar(100)
+  telefono varchar(20)
+  email varchar(150)
+  direccion text
+  fecha_registro timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  Note: 'Información de clientes para pedidos'
+}
+
+Table pedidos {
+  id int [pk, increment]
+  numero_pedido varchar(50) [unique, not null]
+  cliente_id int [ref: > clientes.id]
+  usuario_id int [not null, ref: > usuarios.id]
+  sucursal_id int [not null, ref: > sucursales.id]
+  estado varchar(20) [default: 'pendiente', note: 'pendiente, en_preparacion, listo, entregado, cancelado']
+  tipo_pedido varchar(20) [not null, default: 'mesa', note: 'mesa, domicilio, para_llevar']
+  subtotal decimal(10,2) [not null, default: 0.00]
+  impuestos decimal(10,2) [not null, default: 0.00]
+  descuento decimal(10,2) [not null, default: 0.00]
+  total decimal(10,2) [not null, default: 0.00]
+  notas text
+  fecha_pedido timestamp [default: `CURRENT_TIMESTAMP`]
+  fecha_entrega timestamp
+  
+  Note: 'Gestión de pedidos realizados'
+}
+
+Table detalle_pedidos {
+  id int [pk, increment]
+  pedido_id int [not null, ref: > pedidos.id]
+  producto_id int [not null, ref: > inventario.id]
+  cantidad int [not null, default: 1]
+  precio_unitario decimal(10,2) [not null]
+  subtotal decimal(10,2) [not null]
+  notas_item text
+  
+  Note: 'Items específicos de cada pedido'
+}
+
+Table comandas {
+  id int [pk, increment]
+  pedido_id int [not null, ref: > pedidos.id]
+  numero_comanda varchar(50) [unique, not null]
+  estado varchar(20) [default: 'pendiente', note: 'pendiente, en_preparacion, lista, entregada']
+  prioridad varchar(20) [default: 'normal', note: 'baja, normal, alta, urgente']
+  tiempo_estimado int [note: 'en minutos']
+  usuario_asignado_id int [ref: > usuarios.id]
+  sucursal_id int [not null, ref: > sucursales.id]
+  notas_cocina text
+  fecha_creacion timestamp [default: `CURRENT_TIMESTAMP`]
+  fecha_inicio_preparacion timestamp
+  fecha_finalizacion timestamp
+  
+  Note: 'Órdenes para la cocina'
+}
+
+Table detalle_comandas {
+  id int [pk, increment]
+  comanda_id int [not null, ref: > comandas.id]
+  detalle_pedido_id int [not null, ref: > detalle_pedidos.id]
+  estado_item varchar(20) [default: 'pendiente', note: 'pendiente, en_preparacion, listo']
+  notas_preparacion text
+  
+  Note: 'Items específicos de cada comanda'
+}
+
+Table movimientos_inventario {
+  id int [pk, increment]
+  producto_id int [not null, ref: > inventario.id]
+  tipo_movimiento varchar(20) [not null, note: 'entrada, salida, ajuste, merma']
+  cantidad int [not null]
+  motivo varchar(200)
+  usuario_id int [not null, ref: > usuarios.id]
+  sucursal_id int [not null, ref: > sucursales.id]
+  referencia_pedido_id int [ref: > pedidos.id]
+  fecha_movimiento timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  Note: 'Historial de cambios en el stock'
+}
+
+Table sesiones_usuario {
+  id int [pk, increment]
+  usuario_id int [not null, ref: > usuarios.id]
+  token varchar(255) [unique, not null]
+  ip_address varchar(45)
+  user_agent text
+  fecha_inicio timestamp [default: `CURRENT_TIMESTAMP`]
+  fecha_expiracion timestamp [not null]
+  activa boolean [default: true]
+  
+  Note: 'Control de acceso y seguridad'
+}
+
+// ================================================
+// RELACIONES PRINCIPALES
+// ================================================
+
+// Sucursales como centro del sistema
+Ref: sucursales.id < inventario.sucursal_id [delete: cascade]
+Ref: sucursales.id < pedidos.sucursal_id [delete: restrict]
+Ref: sucursales.id < comandas.sucursal_id [delete: restrict]
+Ref: sucursales.id < movimientos_inventario.sucursal_id [delete: restrict]
+
+// Categorías y productos
+Ref: categorias_productos.id < inventario.categoria_id [delete: set null]
+
+// Clientes y pedidos
+Ref: clientes.id < pedidos.cliente_id [delete: set null]
+
+// Usuarios y sus actividades
+Ref: usuarios.id < pedidos.usuario_id [delete: restrict]
+Ref: usuarios.id < comandas.usuario_asignado_id [delete: set null]
+Ref: usuarios.id < movimientos_inventario.usuario_id [delete: restrict]
+Ref: usuarios.id < sesiones_usuario.usuario_id [delete: cascade]
+
+// Flujo de pedidos
+Ref: pedidos.id < detalle_pedidos.pedido_id [delete: cascade]
+Ref: pedidos.id < comandas.pedido_id [delete: cascade]
+Ref: pedidos.id < movimientos_inventario.referencia_pedido_id [delete: set null]
+
+// Productos en pedidos
+Ref: inventario.id < detalle_pedidos.producto_id [delete: restrict]
+Ref: inventario.id < movimientos_inventario.producto_id [delete: cascade]
+
+// Comandas y su detalle
+Ref: comandas.id < detalle_comandas.comanda_id [delete: cascade]
+Ref: detalle_pedidos.id < detalle_comandas.detalle_pedido_id [delete: cascade]
+
+// ================================================
+// NOTAS ADICIONALES
+// ================================================
+
+Note sucursales_inventario {
+  '''
+  Cada sucursal maneja su propio inventario de productos.
+  Permite control descentralizado del stock por ubicación.
+  '''
+}
+
+Note flujo_pedidos {
+  '''
+  Flujo principal:
+  1. Cliente realiza pedido
+  2. Se genera detalle de pedido
+  3. Se crea comanda para cocina
+  4. Se actualiza inventario automáticamente
+  '''
+}
+
+Note sistema_usuarios {
+  '''
+  Roles del sistema:
+  - admin: Acceso total al sistema
+  - gerente: Gestión de sucursal específica
+  - mesero: Toma de pedidos y atención
+  - cocinero: Preparación de comandas
+  - cajero: Procesamiento de pagos
+  '''
+}

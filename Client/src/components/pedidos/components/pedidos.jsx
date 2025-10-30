@@ -1,5 +1,26 @@
 import { useState } from 'react';
+import { Formik, Form, Field, ErrorMessage, FieldArray } from 'formik';
+import * as Yup from 'yup';
 import '../componentsCss/pedidos.css';
+
+// Esquema de validación para pedidos
+const pedidoValidationSchema = Yup.object({
+    mesa: Yup.number()
+        .required('Debe seleccionar una mesa')
+        .positive('Debe seleccionar una mesa válida')
+        .integer('El número de mesa debe ser un entero'),
+    items: Yup.array()
+        .of(Yup.string()
+            .required('El item no puede estar vacío')
+            .min(3, 'El item debe tener al menos 3 caracteres')
+            .max(50, 'El item no puede exceder 50 caracteres'))
+        .min(1, 'Debe tener al menos un item')
+        .required('Los items son obligatorios'),
+    usuarioAsignado: Yup.string()
+        .required('Debe asignar un usuario'),
+    observaciones: Yup.string()
+        .max(200, 'Las observaciones no pueden exceder 200 caracteres')
+});
 
 const Pedidos = () => {
 
@@ -13,15 +34,6 @@ const Pedidos = () => {
 
     const mesasDisponibles = [1, 2, 3, 4, 5, 6, 7];
 
-    const [pedido, setPedido] = useState({
-        mesa: '',
-        items: [''],
-        usuarioAsignado: '',
-        cliente: '',
-        observaciones: '',
-        total: 0
-    });
-
     const productosDisponibles = [
         { nombre: 'Pizza Margherita', precio: 15.00 },
         { nombre: 'Pizza Pepperoni', precio: 17.00 },
@@ -33,33 +45,9 @@ const Pedidos = () => {
         { nombre: 'Cerveza', precio: 4.00 }
     ];
 
-    const agregarItem = () => {
-        setPedido({
-            ...pedido,
-            items: [...pedido.items, '']
-        });
-    };
-
-    const eliminarItem = (index) => {
-        const nuevosItems = pedido.items.filter((_, i) => i !== index);
-        setPedido({
-            ...pedido,
-            items: nuevosItems.length > 0 ? nuevosItems : ['']
-        });
-    };
-
-    const actualizarItem = (index, valor) => {
-        const nuevosItems = [...pedido.items];
-        nuevosItems[index] = valor;
-        setPedido({
-            ...pedido,
-            items: nuevosItems
-        });
-    };
-
-    const calcularTotal = () => {
+    const calcularTotal = (items) => {
         let total = 0;
-        pedido.items.forEach(item => {
+        items.forEach(item => {
             const producto = productosDisponibles.find(p => p.nombre === item);
             if (producto) {
                 total += producto.precio;
@@ -68,30 +56,19 @@ const Pedidos = () => {
         return total.toFixed(2);
     };
 
-    const limpiarFormulario = () => {
-        setPedido({
-            mesa: '',
-            items: [''],
-            usuarioAsignado: '',
-            cliente: '',
-            observaciones: '',
-            total: 0
-        });
-    };
-
-    const tomarPedido = () => {
-        if (pedido.mesa && pedido.usuarioAsignado && pedido.cliente &&
-            pedido.items.some(item => item !== '')) {
-
-            const itemsValidos = pedido.items.filter(item => item !== '');
-            const total = parseFloat(calcularTotal());
+    const crearPedido = async (valores, { resetForm }) => {
+        try {
+            await pedidoValidationSchema.validate(valores, { abortEarly: false });
+            
+            const itemsValidos = valores.items.filter(item => item !== '');
+            const total = parseFloat(calcularTotal(itemsValidos));
+            const usuarioSeleccionado = usuariosDisponibles.find(u => u.id === parseInt(valores.usuarioAsignado));
 
             const pedidoCompleto = {
-                mesa: pedido.mesa,
-                cliente: pedido.cliente,
+                mesa: valores.mesa,
                 items: itemsValidos,
-                usuarioAsignado: usuariosDisponibles.find(u => u.id === parseInt(pedido.usuarioAsignado)),
-                observaciones: pedido.observaciones,
+                usuarioAsignado: usuarioSeleccionado,
+                observaciones: valores.observaciones,
                 total: total,
                 fecha: new Date().toLocaleDateString('es-ES'),
                 hora: new Date().toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})
@@ -107,172 +84,162 @@ const Pedidos = () => {
                 };
             });
 
-            // Obtener comandas existentes de localStorage
-            const comandasExistentes = JSON.parse(localStorage.getItem('comandas') || '[]');
-
-            // Asignar ID automáticamente
-            const nuevoId = Math.max(...comandasExistentes.map(c => c.id), 0) + 1;
-
             const nuevaComanda = {
-                id: nuevoId,
-                mesa: parseInt(pedido.mesa),
-                nombrePedido: `Pedido de ${pedido.cliente}`,
+                id: Date.now(),
+                mesa: valores.mesa,
+                nombrePedido: `Pedido ${usuarioSeleccionado.nombre}`,
                 productos: productosComanda,
-                total: total,
-                usuarioAsignado: usuariosDisponibles.find(u => u.id === parseInt(pedido.usuarioAsignado))?.nombre || 'Usuario no asignado',
-                observaciones: pedido.observaciones
+                total: total
             };
 
-            // Guardar nueva comanda en localStorage
-            const nuevasComandas = [...comandasExistentes, nuevaComanda];
-            localStorage.setItem('comandas', JSON.stringify(nuevasComandas));
+            // Guardar en localStorage
+            const comandasGuardadas = JSON.parse(localStorage.getItem('comandas') || '[]');
+            comandasGuardadas.push(nuevaComanda);
+            localStorage.setItem('comandas', JSON.stringify(comandasGuardadas));
 
-            console.log('Pedido tomado:', pedidoCompleto);
-            alert(`Pedido tomado exitosamente!\nCliente: ${pedido.cliente}\nMesa: ${pedido.mesa}\nTotal: $${total}\nComanda creada para ${pedido.cliente}`);
-
-            limpiarFormulario();
-        } else {
-            alert('Por favor complete todos los campos obligatorios');
+            alert(`Pedido tomado exitosamente para Mesa ${valores.mesa}. Total: $${total}`);
+            resetForm();
+            
+        } catch (error) {
+            console.error('Error al crear pedido:', error);
+            throw error;
         }
     };
 
     return (
         <div className="pedidos-container">
-            <div className="pedidos-header">
-                <h2>Tomar Pedido</h2>
-                <div className="total-display">
-                    Total: <span className="total-amount">${calcularTotal()}</span>
-                </div>
-            </div>
-
-            <div className="formulario-pedido">
-
-                <div className="seccion-atencion">
-                    <div className="form-group">
-                        <label htmlFor="mesa">Mesa *</label>
-                        <select
-                            id="mesa"
-                            value={pedido.mesa}
-                            onChange={(e) => setPedido({...pedido, mesa: e.target.value})}
-                            className="form-input"
-                            required
-                        >
-                            <option value="">Seleccione una mesa</option>
-                            {mesasDisponibles.map(mesa => (
-                                <option key={mesa} value={mesa}>
-                                    Mesa {mesa}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="cliente">Nombre del Cliente *</label>
-                        <input
-                            type="text"
-                            id="cliente"
-                            value={pedido.cliente}
-                            onChange={(e) => setPedido({...pedido, cliente: e.target.value})}
-                            className="form-input"
-                            placeholder="Ingrese el nombre del cliente"
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="usuario-asignado">Atendido por *</label>
-                        <select
-                            id="usuario-asignado"
-                            value={pedido.usuarioAsignado}
-                            onChange={(e) => setPedido({...pedido, usuarioAsignado: e.target.value})}
-                            className="form-input"
-                            required
-                        >
-                            <option value="">Seleccione quien atiende</option>
-                            {usuariosDisponibles.map(usuario => (
-                                <option key={usuario.id} value={usuario.id}>
-                                    {usuario.nombre} ({usuario.rol})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                <div className="seccion-items">
-                    <h3>Items del Pedido</h3>
-                    <div className="items-container">
-                        {pedido.items.map((item, index) => (
-                            <div key={index} className="item-row">
-                                <div className="item-numero">{index + 1}.</div>
-                                <select
-                                    value={item}
-                                    onChange={(e) => actualizarItem(index, e.target.value)}
-                                    className="form-input item-select"
-                                >
-                                    <option value="">Seleccione un producto</option>
-                                    {productosDisponibles.map((producto, i) => (
-                                        <option key={i} value={producto.nombre}>
-                                            {producto.nombre} - ${producto.precio}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="item-precio">
-                                    {item && productosDisponibles.find(p => p.nombre === item) ?
-                                        `$${productosDisponibles.find(p => p.nombre === item).precio}` :
-                                        '$0.00'
-                                    }
-                                </div>
-                                {pedido.items.length > 1 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => eliminarItem(index)}
-                                        className="btn-eliminar-item"
-                                        title="Eliminar item"
-                                    >
-                                        ×
-                                    </button>
-                                )}
+            <Formik
+                initialValues={{
+                    mesa: '',
+                    items: [''],
+                    usuarioAsignado: '',
+                    observaciones: ''
+                }}
+                validationSchema={pedidoValidationSchema}
+                onSubmit={crearPedido}
+            >
+                {({ values, errors, touched, isSubmitting }) => (
+                    <>
+                        <div className="pedidos-header">
+                            <h2>Tomar Pedido</h2>
+                            <div className="total-display">
+                                Total: <span className="total-amount">${calcularTotal(values.items)}</span>
                             </div>
-                        ))}
-                    </div>
+                        </div>
 
-                    <button
-                        type="button"
-                        onClick={agregarItem}
-                        className="btn-agregar-item"
-                    >
-                        + Agregar Item
-                    </button>
-                </div>
+                        <Form className="formulario-pedido">
+                            <div className="seccion-atencion">
+                                <div className="form-group">
+                                    <label htmlFor="mesa">Mesa *</label>
+                                    <Field
+                                        as="select"
+                                        id="mesa"
+                                        name="mesa"
+                                        className={`form-input ${errors.mesa && touched.mesa ? 'error' : ''}`}
+                                    >
+                                        <option value="">Seleccione una mesa</option>
+                                        {mesasDisponibles.map(mesa => (
+                                            <option key={mesa} value={mesa}>
+                                                Mesa {mesa}
+                                            </option>
+                                        ))}
+                                    </Field>
+                                    <ErrorMessage name="mesa" component="span" className="error-message" />
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="usuarioAsignado">Atendido por *</label>
+                                    <Field
+                                        as="select"
+                                        id="usuarioAsignado"
+                                        name="usuarioAsignado"
+                                        className={`form-input ${errors.usuarioAsignado && touched.usuarioAsignado ? 'error' : ''}`}
+                                    >
+                                        <option value="">Seleccione quien atiende</option>
+                                        {usuariosDisponibles.map(usuario => (
+                                            <option key={usuario.id} value={usuario.id}>
+                                                {usuario.nombre} ({usuario.rol})
+                                            </option>
+                                        ))}
+                                    </Field>
+                                    <ErrorMessage name="usuarioAsignado" component="span" className="error-message" />
+                                </div>
+                            </div>
 
-                <div className="seccion-observaciones">
-                    <h3>Observaciones</h3>
-                    <div className="form-group">
-                        <textarea
-                            value={pedido.observaciones}
-                            onChange={(e) => setPedido({...pedido, observaciones: e.target.value})}
-                            className="form-input textarea-observaciones"
-                            placeholder="Observaciones especiales del pedido (opcional)"
-                            rows={3}
-                        />
-                    </div>
-                </div>
+                            <div className="seccion-items">
+                                <h3>Items del Pedido</h3>
+                                <FieldArray name="items">
+                                    {({ push, remove }) => (
+                                        <div className="items-container">
+                                            {values.items.map((item, index) => (
+                                                <div key={index} className="item-row">
+                                                    <div className="item-input-container">
+                                                        <Field
+                                                            as="select"
+                                                            name={`items.${index}`}
+                                                            className={`form-input item-input ${errors.items?.[index] && touched.items?.[index] ? 'error' : ''}`}
+                                                        >
+                                                            <option value="">Seleccione un producto</option>
+                                                            {productosDisponibles.map((producto, i) => (
+                                                                <option key={i} value={producto.nombre}>
+                                                                    {producto.nombre} - ${producto.precio}
+                                                                </option>
+                                                            ))}
+                                                        </Field>
+                                                        <ErrorMessage name={`items.${index}`} component="span" className="error-message" />
+                                                    </div>
+                                                    
+                                                    {values.items.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => remove(index)}
+                                                            className="btn-eliminar-item"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                            
+                                            <button
+                                                type="button"
+                                                onClick={() => push('')}
+                                                className="btn-agregar-item"
+                                            >
+                                                + Agregar Item
+                                            </button>
+                                        </div>
+                                    )}
+                                </FieldArray>
+                            </div>
 
-                <div className="seccion-acciones">
-                    <button
-                        onClick={limpiarFormulario}
-                        className="btn-limpiar"
-                    >
-                        Limpiar
-                    </button>
-                    <button
-                        onClick={tomarPedido}
-                        className="btn-tomar-pedido"
-                        disabled={!pedido.mesa || !pedido.usuarioAsignado || !pedido.cliente ||
-                                 !pedido.items.some(item => item !== '')}
-                    >
-                        Tomar Pedido
-                    </button>
-                </div>
-            </div>
+                            <div className="seccion-observaciones">
+                                <h3>Observaciones</h3>
+                                <div className="form-group">
+                                    <Field
+                                        as="textarea"
+                                        name="observaciones"
+                                        placeholder="Observaciones especiales del pedido..."
+                                        className={`form-textarea ${errors.observaciones && touched.observaciones ? 'error' : ''}`}
+                                        rows="3"
+                                    />
+                                    <ErrorMessage name="observaciones" component="span" className="error-message" />
+                                </div>
+                            </div>
+
+                            <div className="form-actions">
+                                <button
+                                    type="submit"
+                                    className="btn-tomar-pedido"
+                                    disabled={isSubmitting || values.items.every(item => !item)}
+                                >
+                                    {isSubmitting ? 'Procesando...' : 'Tomar Pedido'}
+                                </button>
+                            </div>
+                        </Form>
+                    </>
+                )}
+            </Formik>
         </div>
     );
 };

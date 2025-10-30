@@ -10,8 +10,15 @@ const initialValues = {
     password: ''
 }
 const validationSchema = Yup.object().shape({
-    username: Yup.string().required('Usuario requerido'),
-    password: Yup.string().required('Contraseña requerida')
+    username: Yup.string()
+        .required('Usuario requerido')
+        .min(3, 'El usuario debe tener al menos 3 caracteres')
+        .max(20, 'El usuario no puede exceder 20 caracteres')
+        .matches(/^[a-zA-Z0-9_]+$/, 'El usuario solo puede contener letras, números y guiones bajos'),
+    password: Yup.string()
+        .required('Contraseña requerida')
+        .min(6, 'La contraseña debe tener al menos 6 caracteres')
+        .max(50, 'La contraseña no puede exceder 50 caracteres')
 });
 
 const onSubmit = async (data, { setSubmitting }) => {
@@ -45,20 +52,36 @@ return (
             <Formik initialValues={initialValues}
                 validationSchema={validationSchema}
                 onSubmit={onSubmit}>
-                {({ isSubmitting }) => (
+                {({ isSubmitting, errors, touched }) => (
                     <Form className="login-form">
                         <div className="form-group">
                             <label htmlFor="username" className="form-label">Usuario</label>
-                            <Field type="text" id="username" name="username" className="form-input" />
+                            <Field 
+                                type="text" 
+                                id="username" 
+                                name="username" 
+                                className={`form-input ${errors.username && touched.username ? 'error' : ''}`}
+                                placeholder="Ingrese su usuario"
+                            />
                             <ErrorMessage name="username" component="div" className="form-error" />
                         </div>
                         <div className="form-group">
                             <label htmlFor="password" className="form-label">Contraseña</label>
-                            <Field type="password" id="password" name="password" className="form-input" />
+                            <Field 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                className={`form-input ${errors.password && touched.password ? 'error' : ''}`}
+                                placeholder="Ingrese su contraseña"
+                            />
                             <ErrorMessage name="password" component="div" className="form-error" />
                         </div>
-                        <button type="submit" disabled={isSubmitting} className="login-button">
-                            Iniciar Sesión
+                        <button 
+                            type="submit" 
+                            disabled={isSubmitting || (Object.keys(errors).length > 0 && Object.keys(touched).length > 0)} 
+                            className="login-button"
+                        >
+                            {isSubmitting ? 'Iniciando...' : 'Iniciar Sesión'}
                         </button>
                     </Form>
                 )}

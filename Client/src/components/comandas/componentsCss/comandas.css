@@ -505,44 +505,53 @@
     cursor: not-allowed;
 }
 
-/* Paginación */
-.pagination {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 2rem;
-    flex-wrap: wrap;
+/* Estilos para validación */
+.form-input.error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.1rem rgba(220, 53, 69, 0.25);
 }
 
-.btn-pagination {
-    padding: 0.5rem 1rem;
-    border: 2px solid var(--verde-claro);
-    background-color: var(--blanco);
-    color: var(--verde-oscuro);
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    min-width: 40px;
+.form-input.error:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
 
-.btn-pagination:hover {
-    background-color: var(--verde-fondo);
-    border-color: var(--verde-principal);
+.error-message {
+    color: #dc3545;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    display: block;
 }
 
-.btn-pagination.active {
+.validation-summary {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.validation-summary ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.validation-summary li {
+    margin-bottom: 0.25rem;
+}
+
+.btn-agregar-item {
     background-color: var(--verde-principal);
     color: var(--blanco);
-    border-color: var(--verde-principal);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.no-comandas-message {
-    text-align: center;
-    padding: 2rem;
-    color: var(--gris-oscuro);
-    font-size: 1.1rem;
-    background-color: var(--verde-fondo);
-    border-radius: 8px;
-    margin: 2rem 0;
+.btn-agregar-item:hover {
+    background-color: var(--verde-hover);
 }

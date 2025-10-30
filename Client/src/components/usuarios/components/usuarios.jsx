@@ -1,5 +1,23 @@
 import React, { useState } from 'react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 import '../componentsCss/usuarios.css';
+
+// Esquema de validación para usuarios
+const usuarioValidationSchema = Yup.object({
+    nombre: Yup.string()
+        .required('El nombre es obligatorio')
+        .min(2, 'El nombre debe tener al menos 2 caracteres')
+        .max(50, 'El nombre no puede exceder 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios'),
+    telefono: Yup.string()
+        .required('El teléfono es obligatorio')
+        .matches(/^\+?[0-9\s-]{10,15}$/, 'Formato de teléfono inválido (ej: 951 6987 654)')
+        .min(10, 'El teléfono debe tener al menos 10 dígitos'),
+    rol: Yup.string()
+        .required('El rol es obligatorio')
+        .oneOf(['mesero', 'admin', 'supervisor'], 'Rol inválido')
+});
 
 const Usuarios = () => {
     const [usuarios, setUsuarios] = useState([
@@ -9,7 +27,7 @@ const Usuarios = () => {
             rol: 'mesero',
             activo: true,
             ultimaConexion: '2025-09-15 13:45',
-            telefono: '+951 6987 654'
+            telefono: '951 6987 654'
         },
         {
             id: 5,
@@ -17,14 +35,12 @@ const Usuarios = () => {
             rol: 'mesero',
             activo: true,
             ultimaConexion: '2025-09-15 11:15',
-            telefono: '+951 6774 563'
+            telefono: '951 6774 563'
         }
     ]);
 
     const [filtroEstado, setFiltroEstado] = useState('todos');
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
-    const [nuevoNombre, setNuevoNombre] = useState('');
-    const [nuevoTelefono, setNuevoTelefono] = useState('');
 
     const usuariosFiltrados = usuarios.filter(usuario => {
         const cumpleEstado = filtroEstado === 'todos' ||
@@ -45,22 +61,26 @@ const Usuarios = () => {
         }
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (nuevoNombre.trim() && nuevoTelefono.trim()) {
+    const crearUsuario = async (valores, { resetForm }) => {
+        try {
+            await usuarioValidationSchema.validate(valores, { abortEarly: false });
+            
             const nuevoId = Math.max(...usuarios.map(u => u.id)) + 1;
             const nuevoUsuario = {
                 id: nuevoId,
-                nombre: nuevoNombre,
-                rol: 'mesero',
+                nombre: valores.nombre,
+                rol: valores.rol,
                 activo: true,
                 ultimaConexion: new Date().toISOString().slice(0, 16).replace('T', ' '),
-                telefono: nuevoTelefono
+                telefono: valores.telefono
             };
+            
             setUsuarios([...usuarios, nuevoUsuario]);
-            setNuevoNombre('');
-            setNuevoTelefono('');
+            resetForm();
             setMostrarFormulario(false);
+        } catch (error) {
+            console.error('Error al crear usuario:', error);
+            throw error;
         }
     };
 
@@ -101,32 +121,66 @@ const Usuarios = () => {
             {mostrarFormulario && (
                 <div className="formulario-usuario">
                     <h3>Nuevo Mesero</h3>
-                    <form className="usuario-form" onSubmit={handleSubmit}>
-                        <div className="form-row">
-                            <input
-                                type="text"
-                                placeholder="Nombre completo"
-                                className="form-input"
-                                value={nuevoNombre}
-                                onChange={(e) => setNuevoNombre(e.target.value)}
-                            />
-                            <input
-                                type="tel"
-                                placeholder="Teléfono"
-                                className="form-input"
-                                value={nuevoTelefono}
-                                onChange={(e) => setNuevoTelefono(e.target.value)}
-                            />
-                        </div>
-                        <div className="form-actions">
-                            <button type="button" className="btn-cancelar" onClick={() => setMostrarFormulario(false)}>
-                                Cancelar
-                            </button>
-                            <button type="submit" className="btn-guardar">
-                                Guardar Mesero
-                            </button>
-                        </div>
-                    </form>
+                    <Formik
+                        initialValues={{
+                            nombre: '',
+                            telefono: '',
+                            rol: 'mesero'
+                        }}
+                        validationSchema={usuarioValidationSchema}
+                        onSubmit={crearUsuario}
+                    >
+                        {({ errors, touched, isSubmitting }) => (
+                            <Form className="usuario-form">
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <Field
+                                            type="text"
+                                            name="nombre"
+                                            placeholder="Nombre completo"
+                                            className={`form-input ${errors.nombre && touched.nombre ? 'error' : ''}`}
+                                        />
+                                        <ErrorMessage name="nombre" component="span" className="error-message" />
+                                    </div>
+                                    <div className="form-group">
+                                        <Field
+                                            type="tel"
+                                            name="telefono"
+                                            placeholder="Teléfono (ej: 951 6987 654)"
+                                            className={`form-input ${errors.telefono && touched.telefono ? 'error' : ''}`}
+                                        />
+                                        <ErrorMessage name="telefono" component="span" className="error-message" />
+                                    </div>
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <Field as="select" name="rol" className={`form-input ${errors.rol && touched.rol ? 'error' : ''}`}>
+                                            <option value="mesero">Mesero</option>
+                                            <option value="supervisor">Supervisor</option>
+                                            <option value="admin">Administrador</option>
+                                        </Field>
+                                        <ErrorMessage name="rol" component="span" className="error-message" />
+                                    </div>
+                                </div>
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="btn-cancelar" 
+                                        onClick={() => setMostrarFormulario(false)}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button 
+                                        type="submit" 
+                                        className="btn-guardar"
+                                        disabled={isSubmitting || Object.keys(errors).length > 0}
+                                    >
+                                        {isSubmitting ? 'Guardando...' : 'Guardar Mesero'}
+                                    </button>
+                                </div>
+                            </Form>
+                        )}
+                    </Formik>
                 </div>
             )}
 

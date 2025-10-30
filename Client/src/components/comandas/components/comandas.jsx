@@ -1,6 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 import '../componentsCss/comandas.css';
+
+// Esquemas de validación
+const productoValidationSchema = Yup.object({
+    nombre: Yup.string()
+        .required('El nombre del producto es obligatorio')
+        .min(3, 'El nombre debe tener al menos 3 caracteres')
+        .max(50, 'El nombre no puede exceder 50 caracteres'),
+    cantidad: Yup.number()
+        .required('La cantidad es obligatoria')
+        .positive('La cantidad debe ser mayor a 0')
+        .integer('La cantidad debe ser un número entero')
+        .min(1, 'La cantidad mínima es 1')
+        .max(100, 'La cantidad máxima es 100'),
+    precio: Yup.number()
+        .required('El precio es obligatorio')
+        .positive('El precio debe ser mayor a 0')
+        .max(1000, 'El precio no puede exceder $1000')
+});
+
+const comandaValidationSchema = Yup.object({
+    mesa: Yup.number()
+        .required('El número de mesa es obligatorio')
+        .positive('El número de mesa debe ser mayor a 0')
+        .integer('El número de mesa debe ser un número entero')
+        .min(1, 'El número de mesa debe ser al menos 1')
+        .max(50, 'El número de mesa no puede exceder 50'),
+    nombrePedido: Yup.string()
+        .required('El nombre del pedido es obligatorio')
+        .min(3, 'El nombre del pedido debe tener al menos 3 caracteres')
+        .max(100, 'El nombre del pedido no puede exceder 100 caracteres'),
+    productos: Yup.array()
+        .of(productoValidationSchema)
+        .min(1, 'Debe tener al menos un producto')
+        .required('Los productos son obligatorios')
+});
 
 const Comandas = () => {
     const navigate = useNavigate();
@@ -56,12 +93,39 @@ const Comandas = () => {
         setComandasList([...comandasHardcodeadas, ...comandasGuardadas]);
     }, []);
 
+    // Filtrar y ordenar comandas
+    const filteredComandas = comandas
+        .filter(comanda => 
+            comanda.nombrePedido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            comanda.mesa.toString().includes(searchTerm)
+        )
+        .sort((a, b) => {
+            if (sortOrder === 'asc') {
+                return a.mesa - b.mesa;
+            } else {
+                return b.mesa - a.mesa;
+            }
+        });
+
+    // Calcular paginación
+    const totalPages = Math.ceil(filteredComandas.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const paginatedComandas = filteredComandas.slice(indexOfFirstItem, indexOfLastItem);
+
 
 
     // Estados para el modal de edición de productos
     const [modalEditarProductos, setModalEditarProductos] = useState(false);
     const [comandaEditando, setComandaEditando] = useState(null);
     const [productosEditados, setProductosEditados] = useState([]);
+    
+    // Estados para validación
+    const [erroresValidacion, setErroresValidacion] = useState({});
+    const [mostrarErrores, setMostrarErrores] = useState(false);
+    
+    // Estados para modal de nueva comanda
+    const [modalNuevaComanda, setModalNuevaComanda] = useState(false);
 
     // Productos disponibles para la comanda
     const productosDisponibles = [
@@ -92,12 +156,30 @@ const Comandas = () => {
         setModalEditarProductos(false);
         setComandaEditando(null);
         setProductosEditados([]);
+        setErroresValidacion({});
+        setMostrarErrores(false);
     };
 
-    const actualizarProductoEditado = (index, campo, valor) => {
+    const actualizarProductoEditado = async (index, campo, valor) => {
         const nuevosProductos = [...productosEditados];
         nuevosProductos[index] = { ...nuevosProductos[index], [campo]: valor };
         setProductosEditados(nuevosProductos);
+        
+        // Validar el producto individual
+        try {
+            await productoValidationSchema.validateAt(campo, { [campo]: valor });
+            // Si la validación pasa, limpiar errores para este campo
+            setErroresValidacion(prev => ({
+                ...prev,
+                [`producto_${index}_${campo}`]: null
+            }));
+        } catch (error) {
+            // Si hay error de validación, guardarlo
+            setErroresValidacion(prev => ({
+                ...prev,
+                [`producto_${index}_${campo}`]: error.message
+            }));
+        }
     };
 
     const agregarProductoEditado = () => {
@@ -110,34 +192,86 @@ const Comandas = () => {
         }
     };
 
-    const guardarCambiosProductos = () => {
-        const totalNuevo = productosEditados.reduce((total, producto) => total + (producto.precio * producto.cantidad), 0);
-        setComandasList(comandas.map(comanda =>
-            comanda.id === comandaEditando.id
-                ? { ...comanda, productos: productosEditados, total: totalNuevo }
-                : comanda
-        ));
-        cerrarModalEditarProductos();
+    const guardarCambiosProductos = async () => {
+        try {
+            setMostrarErrores(true);
+            
+            // Validar todos los productos
+            for (let i = 0; i < productosEditados.length; i++) {
+                await productoValidationSchema.validate(productosEditados[i], { abortEarly: false });
+            }
+            
+            // Validar que hay al menos un producto
+            if (productosEditados.length === 0) {
+                throw new Error('Debe tener al menos un producto');
+            }
+            
+            // Si todas las validaciones pasan, guardar cambios
+            const totalNuevo = productosEditados.reduce((total, producto) => total + (producto.precio * producto.cantidad), 0);
+            setComandasList(comandas.map(comanda =>
+                comanda.id === comandaEditando.id
+                    ? { ...comanda, productos: productosEditados, total: totalNuevo }
+                    : comanda
+            ));
+            
+            // Limpiar errores y cerrar modal
+            setErroresValidacion({});
+            setMostrarErrores(false);
+            cerrarModalEditarProductos();
+            
+        } catch (error) {
+            if (error.inner) {
+                // Errores de validación de Yup
+                const nuevosErrores = {};
+                error.inner.forEach((err, index) => {
+                    const campo = err.path;
+                    nuevosErrores[`producto_${index}_${campo}`] = err.message;
+                });
+                setErroresValidacion(nuevosErrores);
+            } else {
+                // Otros errores
+                alert(error.message || 'Error al guardar los cambios');
+            }
+        }
     };
 
-    // Funciones para filtrar y ordenar
-    const filteredAndSortedComandas = comandas
-        .filter(comanda =>
-            searchTerm === '' || comanda.fecha === searchTerm
-        )
-        .sort((a, b) => {
-            const dateA = new Date(a.fecha);
-            const dateB = new Date(b.fecha);
-            return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-        });
+    // Funciones para nueva comanda
+    const abrirModalNuevaComanda = () => {
+        setModalNuevaComanda(true);
+    };
 
-    // Paginación
-    const totalPages = Math.ceil(filteredAndSortedComandas.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedComandas = filteredAndSortedComandas.slice(startIndex, startIndex + itemsPerPage);
+    const cerrarModalNuevaComanda = () => {
+        setModalNuevaComanda(false);
+    };
 
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
+    const crearNuevaComanda = async (valores) => {
+        try {
+            // Validar los valores
+            await comandaValidationSchema.validate(valores, { abortEarly: false });
+            
+            // Crear nueva comanda
+            const nuevaComanda = {
+                id: Date.now(), // ID temporal basado en timestamp
+                mesa: valores.mesa,
+                nombrePedido: valores.nombrePedido,
+                productos: valores.productos,
+                total: valores.productos.reduce((total, producto) => total + (producto.precio * producto.cantidad), 0)
+            };
+            
+            // Agregar a la lista
+            setComandasList([...comandas, nuevaComanda]);
+            
+            // Guardar en localStorage
+            const comandasGuardadas = JSON.parse(localStorage.getItem('comandas') || '[]');
+            comandasGuardadas.push(nuevaComanda);
+            localStorage.setItem('comandas', JSON.stringify(comandasGuardadas));
+            
+            cerrarModalNuevaComanda();
+            
+        } catch (error) {
+            console.error('Error al crear comanda:', error);
+            throw error;
+        }
     };
 
 
@@ -146,28 +280,12 @@ const Comandas = () => {
         <div className="comandas-container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <h1>Gestión de Comandas</h1>
-                <div className="search-sort-container">
-                    <input
-                        type="date"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                    <div className="sort-buttons">
-                        <button
-                            onClick={() => setSortOrder('asc')}
-                            className={`btn-sort ${sortOrder === 'asc' ? 'active' : ''}`}
-                        >
-                            Más antiguo
-                        </button>
-                        <button
-                            onClick={() => setSortOrder('desc')}
-                            className={`btn-sort ${sortOrder === 'desc' ? 'active' : ''}`}
-                        >
-                            Más reciente
-                        </button>
-                    </div>
-                </div>
+                <button
+                    onClick={abrirModalNuevaComanda}
+                    className="btn-nueva-comanda"
+                >
+                    + Nueva Comanda
+                </button>
             </div>
 
             <div className="comandas-list">
@@ -253,14 +371,25 @@ const Comandas = () => {
                                                 <span style={{ fontWeight: '500', minWidth: '150px' }}>{producto.nombre}</span>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                     <label style={{ fontSize: '0.9rem', color: '#666' }}>Cant:</label>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        value={producto.cantidad}
-                                                        onChange={(e) => actualizarProductoEditado(index, 'cantidad', parseInt(e.target.value) || 1)}
-                                                        className="form-input"
-                                                        style={{ width: '80px' }}
-                                                    />
+                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            value={producto.cantidad}
+                                                            onChange={(e) => actualizarProductoEditado(index, 'cantidad', parseInt(e.target.value) || 1)}
+                                                            className={`form-input ${erroresValidacion[`producto_${index}_cantidad`] && mostrarErrores ? 'error' : ''}`}
+                                                            style={{ width: '80px' }}
+                                                        />
+                                                        {erroresValidacion[`producto_${index}_cantidad`] && mostrarErrores && (
+                                                            <span style={{ 
+                                                                color: '#dc3545', 
+                                                                fontSize: '0.75rem', 
+                                                                marginTop: '2px' 
+                                                            }}>
+                                                                {erroresValidacion[`producto_${index}_cantidad`]}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                             {productosEditados.length > 1 && (
@@ -319,11 +448,168 @@ const Comandas = () => {
                             <button
                                 onClick={guardarCambiosProductos}
                                 className="btn-confirmar-modal"
-                                disabled={productosEditados.some(p => !p.nombre)}
+                                disabled={
+                                    productosEditados.some(p => !p.nombre || p.cantidad <= 0) ||
+                                    Object.values(erroresValidacion).some(error => error !== null)
+                                }
                             >
                                 Guardar Cambios
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal para nueva comanda */}
+            {modalNuevaComanda && (
+                <div className="modal-overlay" onClick={cerrarModalNuevaComanda}>
+                    <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>Nueva Comanda</h3>
+                            <button className="modal-close" onClick={cerrarModalNuevaComanda}>×</button>
+                        </div>
+
+                        <Formik
+                            initialValues={{
+                                mesa: '',
+                                nombrePedido: '',
+                                productos: [{ nombre: '', cantidad: 1, precio: 0 }]
+                            }}
+                            validationSchema={comandaValidationSchema}
+                            onSubmit={async (values, { setSubmitting, setFieldError }) => {
+                                try {
+                                    await crearNuevaComanda(values);
+                                } catch (error) {
+                                    if (error.inner) {
+                                        error.inner.forEach(err => {
+                                            setFieldError(err.path, err.message);
+                                        });
+                                    } else {
+                                        alert('Error al crear la comanda');
+                                    }
+                                }
+                                setSubmitting(false);
+                            }}
+                        >
+                            {({ values, errors, touched, setFieldValue, isSubmitting }) => (
+                                <Form>
+                                    <div className="modal-body">
+                                        <div className="form-group">
+                                            <label>Número de Mesa:</label>
+                                            <Field
+                                                name="mesa"
+                                                type="number"
+                                                className={`form-input ${errors.mesa && touched.mesa ? 'error' : ''}`}
+                                                min="1"
+                                                max="50"
+                                            />
+                                            <ErrorMessage name="mesa" component="span" className="error-message" />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Nombre del Pedido:</label>
+                                            <Field
+                                                name="nombrePedido"
+                                                type="text"
+                                                className={`form-input ${errors.nombrePedido && touched.nombrePedido ? 'error' : ''}`}
+                                                placeholder="Ej: Pedido Juan Pérez"
+                                            />
+                                            <ErrorMessage name="nombrePedido" component="span" className="error-message" />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Productos:</label>
+                                            {values.productos.map((producto, index) => (
+                                                <div key={index} className="item-row">
+                                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'start', flex: 1 }}>
+                                                        <div style={{ flex: 1 }}>
+                                                            <select
+                                                                value={producto.nombre}
+                                                                onChange={(e) => {
+                                                                    const prodSeleccionado = productosDisponibles.find(p => p.nombre === e.target.value);
+                                                                    if (prodSeleccionado) {
+                                                                        setFieldValue(`productos.${index}.nombre`, prodSeleccionado.nombre);
+                                                                        setFieldValue(`productos.${index}.precio`, prodSeleccionado.precio);
+                                                                    }
+                                                                }}
+                                                                className={`form-input ${errors.productos?.[index]?.nombre && touched.productos?.[index]?.nombre ? 'error' : ''}`}
+                                                            >
+                                                                <option value="">Seleccione un producto</option>
+                                                                {productosDisponibles.map((prod, i) => (
+                                                                    <option key={i} value={prod.nombre}>
+                                                                        {prod.nombre} - ${prod.precio}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                            <ErrorMessage name={`productos.${index}.nombre`} component="span" className="error-message" />
+                                                        </div>
+                                                        
+                                                        <div style={{ width: '100px' }}>
+                                                            <Field
+                                                                name={`productos.${index}.cantidad`}
+                                                                type="number"
+                                                                min="1"
+                                                                max="100"
+                                                                className={`form-input ${errors.productos?.[index]?.cantidad && touched.productos?.[index]?.cantidad ? 'error' : ''}`}
+                                                                style={{ width: '100%' }}
+                                                            />
+                                                            <ErrorMessage name={`productos.${index}.cantidad`} component="span" className="error-message" />
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {values.productos.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const nuevosProductos = values.productos.filter((_, i) => i !== index);
+                                                                setFieldValue('productos', nuevosProductos);
+                                                            }}
+                                                            className="btn-eliminar-item"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                            
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFieldValue('productos', [...values.productos, { nombre: '', cantidad: 1, precio: 0 }]);
+                                                }}
+                                                className="btn-agregar-item"
+                                                style={{ marginTop: '0.5rem' }}
+                                            >
+                                                + Agregar Producto
+                                            </button>
+                                        </div>
+
+                                        <div className="total-preview">
+                                            <strong>Total: ${values.productos.reduce((total, producto) => {
+                                                return total + (producto.precio * producto.cantidad);
+                                            }, 0).toFixed(2)}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div className="modal-footer">
+                                        <button
+                                            type="button"
+                                            onClick={cerrarModalNuevaComanda}
+                                            className="btn-cancelar-modal"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="btn-confirmar-modal"
+                                            disabled={isSubmitting || values.productos.some(p => !p.nombre)}
+                                        >
+                                            {isSubmitting ? 'Creando...' : 'Crear Comanda'}
+                                        </button>
+                                    </div>
+                                </Form>
+                            )}
+                        </Formik>
                     </div>
                 </div>
             )}

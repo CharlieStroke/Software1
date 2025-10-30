@@ -1,5 +1,38 @@
 import React, { useState } from 'react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 import '../componentsCss/inventario.css';
+
+// Esquema de validación para productos de inventario
+const productoInventarioValidationSchema = Yup.object({
+    nombre: Yup.string()
+        .required('El nombre del producto es obligatorio')
+        .min(3, 'El nombre debe tener al menos 3 caracteres')
+        .max(100, 'El nombre no puede exceder 100 caracteres'),
+    categoria: Yup.string()
+        .required('La categoría es obligatoria')
+        .min(3, 'La categoría debe tener al menos 3 caracteres')
+        .max(50, 'La categoría no puede exceder 50 caracteres'),
+    stock: Yup.number()
+        .required('El stock es obligatorio')
+        .integer('El stock debe ser un número entero')
+        .min(0, 'El stock no puede ser negativo')
+        .max(10000, 'El stock no puede exceder 10,000 unidades'),
+    minimo: Yup.number()
+        .required('El stock mínimo es obligatorio')
+        .integer('El stock mínimo debe ser un número entero')
+        .min(0, 'El stock mínimo no puede ser negativo')
+        .max(1000, 'El stock mínimo no puede exceder 1,000 unidades'),
+    precio: Yup.number()
+        .required('El precio es obligatorio')
+        .positive('El precio debe ser mayor a 0')
+        .max(100000, 'El precio no puede exceder $100,000')
+        .test('decimales', 'El precio solo puede tener hasta 2 decimales', 
+            value => value === undefined || /^\d+(\.\d{1,2})?$/.test(value.toString())),
+    unidad: Yup.string()
+        .required('La unidad de medida es obligatoria')
+        .oneOf(['kg', 'gr', 'litro', 'ml', 'unidad', 'porción'], 'Unidad de medida inválida')
+});
 
 const Inventario = () => {
     const [productos, setProductos] = useState([
@@ -15,14 +48,6 @@ const Inventario = () => {
     
     // Estados para el modal de agregar producto
     const [modalNuevoProducto, setModalNuevoProducto] = useState(false);
-    const [nuevoProducto, setNuevoProducto] = useState({
-        nombre: '',
-        categoria: '',
-        stock: '',
-        minimo: '',
-        precio: '',
-        unidad: 'kg'
-    });
 
     const categorias = [...new Set(productos.map(p => p.categoria))];
     
@@ -46,46 +71,34 @@ const Inventario = () => {
 
     // Funciones para manejar el modal de nuevo producto
     const abrirModalNuevoProducto = () => {
-        setNuevoProducto({
-            nombre: '',
-            categoria: '',
-            stock: '',
-            minimo: '',
-            precio: '',
-            unidad: 'kg'
-        });
         setModalNuevoProducto(true);
     };
 
     const cerrarModalNuevoProducto = () => {
         setModalNuevoProducto(false);
-        setNuevoProducto({
-            nombre: '',
-            categoria: '',
-            stock: '',
-            minimo: '',
-            precio: '',
-            unidad: 'kg'
-        });
     };
 
-    const agregarProducto = () => {
-        if (nuevoProducto.nombre && nuevoProducto.categoria && nuevoProducto.stock && 
-            nuevoProducto.minimo && nuevoProducto.precio) {
+    const agregarProducto = async (valores, { resetForm }) => {
+        try {
+            await productoInventarioValidationSchema.validate(valores, { abortEarly: false });
             
             const nuevoId = Math.max(...productos.map(p => p.id)) + 1;
             const productoParaAgregar = {
                 id: nuevoId,
-                nombre: nuevoProducto.nombre,
-                categoria: nuevoProducto.categoria,
-                stock: parseInt(nuevoProducto.stock),
-                minimo: parseInt(nuevoProducto.minimo),
-                precio: parseFloat(nuevoProducto.precio),
-                unidad: nuevoProducto.unidad
+                nombre: valores.nombre,
+                categoria: valores.categoria,
+                stock: parseInt(valores.stock),
+                minimo: parseInt(valores.minimo),
+                precio: parseFloat(valores.precio),
+                unidad: valores.unidad
             };
 
             setProductos([...productos, productoParaAgregar]);
+            resetForm();
             cerrarModalNuevoProducto();
+        } catch (error) {
+            console.error('Error al agregar producto:', error);
+            throw error;
         }
     };
 
@@ -196,108 +209,127 @@ const Inventario = () => {
                             <button className="modal-close" onClick={cerrarModalNuevoProducto}>×</button>
                         </div>
                         
-                        <div className="modal-body">
-                            <div className="form-group">
-                                <label htmlFor="nombre-producto">Nombre del Producto:</label>
-                                <input 
-                                    type="text"
-                                    id="nombre-producto"
-                                    value={nuevoProducto.nombre}
-                                    onChange={(e) => setNuevoProducto({...nuevoProducto, nombre: e.target.value})}
-                                    className="form-input"
-                                    placeholder="Ej: Tomate, Queso, etc."
-                                />
-                            </div>
-                            
-                            <div className="form-group">
-                                <label htmlFor="categoria-producto">Categoría:</label>
-                                <input 
-                                    type="text"
-                                    id="categoria-producto"
-                                    value={nuevoProducto.categoria}
-                                    onChange={(e) => setNuevoProducto({...nuevoProducto, categoria: e.target.value})}
-                                    className="form-input"
-                                    placeholder="Ej: Verduras, Lácteos, etc."
-                                />
-                            </div>
-                            
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="stock-producto">Stock Inicial:</label>
-                                    <input 
-                                        type="number"
-                                        id="stock-producto"
-                                        value={nuevoProducto.stock}
-                                        onChange={(e) => setNuevoProducto({...nuevoProducto, stock: e.target.value})}
-                                        className="form-input"
-                                        placeholder="0"
-                                        min="0"
-                                    />
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="minimo-producto">Stock Mínimo:</label>
-                                    <input 
-                                        type="number"
-                                        id="minimo-producto"
-                                        value={nuevoProducto.minimo}
-                                        onChange={(e) => setNuevoProducto({...nuevoProducto, minimo: e.target.value})}
-                                        className="form-input"
-                                        placeholder="0"
-                                        min="0"
-                                    />
-                                </div>
-                            </div>
-                            
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="precio-producto">Precio:</label>
-                                    <input 
-                                        type="number"
-                                        id="precio-producto"
-                                        value={nuevoProducto.precio}
-                                        onChange={(e) => setNuevoProducto({...nuevoProducto, precio: e.target.value})}
-                                        className="form-input"
-                                        placeholder="0.00"
-                                        min="0"
-                                        step="0.01"
-                                    />
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="unidad-producto">Unidad:</label>
-                                    <select 
-                                        id="unidad-producto"
-                                        value={nuevoProducto.unidad}
-                                        onChange={(e) => setNuevoProducto({...nuevoProducto, unidad: e.target.value})}
-                                        className="form-input"
-                                    >
-                                        <option value="kg">Kilogramos (kg)</option>
-                                        <option value="litro">Litros</option>
-                                        <option value="unidad">Unidades</option>
-                                        <option value="gramo">Gramos (g)</option>
-                                        <option value="ml">Mililitros (ml)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="modal-footer">
-                            <button 
-                                onClick={cerrarModalNuevoProducto} 
-                                className="btn-cancelar-modal"
-                            >
-                                Cancelar
-                            </button>
-                            <button 
-                                onClick={agregarProducto} 
-                                className="btn-confirmar-modal"
-                                disabled={!nuevoProducto.nombre || !nuevoProducto.categoria || 
-                                         !nuevoProducto.stock || !nuevoProducto.minimo || !nuevoProducto.precio}
-                            >
-                                Agregar Producto
-                            </button>
-                        </div>
+                        <Formik
+                            initialValues={{
+                                nombre: '',
+                                categoria: '',
+                                stock: '',
+                                minimo: '',
+                                precio: '',
+                                unidad: 'kg'
+                            }}
+                            validationSchema={productoInventarioValidationSchema}
+                            onSubmit={agregarProducto}
+                        >
+                            {({ errors, touched, isSubmitting }) => (
+                                <Form>
+                                    <div className="modal-body">
+                                        <div className="form-group">
+                                            <label htmlFor="nombre">Nombre del Producto *</label>
+                                            <Field 
+                                                type="text"
+                                                id="nombre"
+                                                name="nombre"
+                                                className={`form-input ${errors.nombre && touched.nombre ? 'error' : ''}`}
+                                                placeholder="Ej: Tomate, Queso, etc."
+                                            />
+                                            <ErrorMessage name="nombre" component="span" className="error-message" />
+                                        </div>
+                                        
+                                        <div className="form-group">
+                                            <label htmlFor="categoria">Categoría *</label>
+                                            <Field 
+                                                type="text"
+                                                id="categoria"
+                                                name="categoria"
+                                                className={`form-input ${errors.categoria && touched.categoria ? 'error' : ''}`}
+                                                placeholder="Ej: Verduras, Lácteos, etc."
+                                            />
+                                            <ErrorMessage name="categoria" component="span" className="error-message" />
+                                        </div>
+                                        
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label htmlFor="stock">Stock Inicial *</label>
+                                                <Field 
+                                                    type="number"
+                                                    id="stock"
+                                                    name="stock"
+                                                    className={`form-input ${errors.stock && touched.stock ? 'error' : ''}`}
+                                                    placeholder="0"
+                                                    min="0"
+                                                />
+                                                <ErrorMessage name="stock" component="span" className="error-message" />
+                                            </div>
+                                            
+                                            <div className="form-group">
+                                                <label htmlFor="minimo">Stock Mínimo *</label>
+                                                <Field 
+                                                    type="number"
+                                                    id="minimo"
+                                                    name="minimo"
+                                                    className={`form-input ${errors.minimo && touched.minimo ? 'error' : ''}`}
+                                                    placeholder="0"
+                                                    min="0"
+                                                />
+                                                <ErrorMessage name="minimo" component="span" className="error-message" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label htmlFor="precio">Precio *</label>
+                                                <Field 
+                                                    type="number"
+                                                    id="precio"
+                                                    name="precio"
+                                                    className={`form-input ${errors.precio && touched.precio ? 'error' : ''}`}
+                                                    placeholder="0.00"
+                                                    min="0"
+                                                    step="0.01"
+                                                />
+                                                <ErrorMessage name="precio" component="span" className="error-message" />
+                                            </div>
+                                            
+                                            <div className="form-group">
+                                                <label htmlFor="unidad">Unidad *</label>
+                                                <Field 
+                                                    as="select"
+                                                    id="unidad"
+                                                    name="unidad"
+                                                    className={`form-input ${errors.unidad && touched.unidad ? 'error' : ''}`}
+                                                >
+                                                    <option value="kg">Kilogramos (kg)</option>
+                                                    <option value="gr">Gramos (gr)</option>
+                                                    <option value="litro">Litros</option>
+                                                    <option value="ml">Mililitros (ml)</option>
+                                                    <option value="unidad">Unidades</option>
+                                                    <option value="porción">Porciones</option>
+                                                </Field>
+                                                <ErrorMessage name="unidad" component="span" className="error-message" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="modal-footer">
+                                        <button 
+                                            type="button"
+                                            onClick={cerrarModalNuevoProducto} 
+                                            className="btn-cancelar-modal"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button 
+                                            type="submit"
+                                            className="btn-confirmar-modal"
+                                            disabled={isSubmitting}
+                                        >
+                                            {isSubmitting ? 'Agregando...' : 'Agregar Producto'}
+                                        </button>
+                                    </div>
+                                </Form>
+                            )}
+                        </Formik>
                     </div>
                 </div>
             )}

@@ -14,8 +14,9 @@ const sucursalValidationSchema = Yup.object({
         .min(10, 'La dirección debe tener al menos 10 caracteres')
         .max(200, 'La dirección no puede exceder 200 caracteres'),
     telefono: Yup.string()
-        .matches(/^\+?[0-9\s-]{10,20}$/, 'Formato de teléfono inválido (ej: +57 601 234 5678)')
-        .min(10, 'El teléfono debe tener al menos 10 dígitos'),
+        .matches(/^[0-9]+$/, 'El teléfono debe contener solo números, sin espacios ni guiones')
+        .min(10, 'El teléfono debe tener al menos 10 dígitos')
+        .max(10, 'El teléfono no puede exceder 10 dígitos'),
     email: Yup.string()
         .email('Formato de email inválido')
         .max(150, 'El email no puede exceder 150 caracteres'),
@@ -53,7 +54,7 @@ export default function Sucursal() {
         id: 1,
         nombre: 'Sucursal Centro',
         direccion: 'Calle 50 #12-34, Centro',
-        telefono: '+57 601 234 5678',
+        telefono: '5760123456789',
         email: 'centro@restaurant.com',
         dueño: 'Ana García',
         horarioApertura: '08:00',
@@ -66,7 +67,7 @@ export default function Sucursal() {
         id: 2,
         nombre: 'Sucursal Norte',
         direccion: 'Carrera 15 #85-42, Zona Rosa',
-        telefono: '+57 601 345 6789',
+        telefono: '5760134567890',
         email: 'norte@restaurant.com',
         dueño: 'Carlos Mendez',
         horarioApertura: '09:00',
@@ -79,7 +80,7 @@ export default function Sucursal() {
         id: 3,
         nombre: 'Sucursal Sur',
         direccion: 'Avenida 68 #45-23, Zona Sur',
-        telefono: '+57 601 456 7890',
+        telefono: '5760145678901',
         email: 'sur@restaurant.com',
         dueño: 'Laura Jiménez',
         horarioApertura: '10:00',
@@ -251,6 +252,7 @@ export default function Sucursal() {
                       <label htmlFor="dueño">Dueño</label>
                       <Field
                         type="text"
+                        pattern="[A-Za-z]*"
                         id="dueño"
                         name="dueño"
                         className={`form-input ${errors.dueño && touched.dueño ? 'error' : ''}`}
@@ -280,7 +282,7 @@ export default function Sucursal() {
                         id="telefono"
                         name="telefono"
                         className={`form-input ${errors.telefono && touched.telefono ? 'error' : ''}`}
-                        placeholder="Ej: +57 601 234 5678"
+                        placeholder="Ej: 9512345678"
                       />
                       <ErrorMessage name="telefono" component="span" className="error-message" />
                     </div>

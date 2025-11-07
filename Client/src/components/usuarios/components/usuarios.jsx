@@ -12,8 +12,9 @@ const usuarioValidationSchema = Yup.object({
         .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios'),
     telefono: Yup.string()
         .required('El teléfono es obligatorio')
-        .matches(/^\+?[0-9\s-]{10,15}$/, 'Formato de teléfono inválido (ej: 951 6987 654)')
-        .min(10, 'El teléfono debe tener al menos 10 dígitos'),
+        .matches(/^[0-9]+$/, 'El teléfono debe contener solo números, sin espacios ni guiones')
+        .min(10, 'El teléfono debe tener al menos 10 dígitos')
+        .max(15, 'El teléfono no puede exceder 15 dígitos'),
     rol: Yup.string()
         .required('El rol es obligatorio')
         .oneOf(['mesero', 'admin', 'supervisor'], 'Rol inválido')
@@ -27,7 +28,7 @@ const Usuarios = () => {
             rol: 'mesero',
             activo: true,
             ultimaConexion: '2025-09-15 13:45',
-            telefono: '951 6987 654'
+            telefono: '9516987654'
         },
         {
             id: 5,
@@ -35,7 +36,7 @@ const Usuarios = () => {
             rol: 'mesero',
             activo: true,
             ultimaConexion: '2025-09-15 11:15',
-            telefono: '951 6774 563'
+            telefono: '9516774563'
         }
     ]);
 

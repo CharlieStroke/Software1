@@ -33,6 +33,8 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+
+
 // Manejo de rutas no encontradas
 app.use((req, res) => {
   res.status(404).json({ 

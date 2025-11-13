@@ -2,19 +2,21 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import '../pagesCss/LoginPage.css';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
+
 const initialValues = {
-    username: '',
+    email: '',
     password: ''
 }
+
 const validationSchema = Yup.object().shape({
-    username: Yup.string()
-        .required('Usuario requerido')
-        .min(3, 'El usuario debe tener al menos 3 caracteres')
-        .max(20, 'El usuario no puede exceder 20 caracteres')
-        .matches(/^[a-zA-Z0-9_]+$/, 'El usuario solo puede contener letras, números y guiones bajos'),
+    email: Yup.string()
+        .required('Email requerido')
+        .email('Email inválido'),
     password: Yup.string()
         .required('Contraseña requerida')
         .min(6, 'La contraseña debe tener al menos 6 caracteres')
@@ -22,25 +24,20 @@ const validationSchema = Yup.object().shape({
 });
 
 const onSubmit = async (data, { setSubmitting }) => {
+    setSubmitting(true);
     try {
-        // Definir credenciales por rol
-        const usuarios = {
-            'mesero': { password: 'mesero123', rol: 'mesero' },
-            'dueño': { password: 'dueño123', rol: 'dueño' },
-            'admin': { password: 'admin123', rol: 'admin' }
-        };
-
-        const usuario = usuarios[data.username];
-        
-        if (usuario && data.password === usuario.password) {
-            // Guardamos el usuario en localStorage para usar en el Dashboard
-            localStorage.setItem('userRole', usuario.rol);
+        const result = await login({ email: data.email, password: data.password });
+        if (result.success) {
             navigate('/dashboard');
         } else {
-            alert('Usuario o Contraseña Inválida');
+            const message = result.error?.message || 'Usuario o contraseña inválida';
+            alert(message);
         }
     } catch (error) {
         console.error('Error de inicio de sesión:', error);
+        alert('Error al iniciar sesión');
+    } finally {
+        setSubmitting(false);
     }
 };
 
@@ -55,15 +52,15 @@ return (
                 {({ isSubmitting, errors, touched }) => (
                     <Form className="login-form">
                         <div className="form-group">
-                            <label htmlFor="username" className="form-label">Usuario</label>
+                            <label htmlFor="email" className="form-label">Email</label>
                             <Field 
-                                type="text" 
-                                id="username" 
-                                name="username" 
-                                className={`form-input ${errors.username && touched.username ? 'error' : ''}`}
-                                placeholder="Ingrese su usuario"
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                className={`form-input ${errors.email && touched.email ? 'error' : ''}`}
+                                placeholder="Ingrese su email"
                             />
-                            <ErrorMessage name="username" component="div" className="form-error" />
+                            <ErrorMessage name="email" component="div" className="form-error" />
                         </div>
                         <div className="form-group">
                             <label htmlFor="password" className="form-label">Contraseña</label>

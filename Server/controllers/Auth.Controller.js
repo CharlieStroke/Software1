@@ -119,13 +119,12 @@ export const login = async (req, res) => {
       });
     }
 
-    // Crear token
+    // Crear token (no incluir sucursal, tabla `usuarios` no tiene `sucursal_id`)
     const token = await createToken({
       id: user.id,
       nombre: user.nombre,
       apellido: user.apellido,
-      rol: user.rol,
-      sucursal: user.sucursal_id
+      rol: user.rol
     });
 
     logAuth('Login exitoso', { email, userId: user.id, rol: user.rol });
@@ -146,8 +145,7 @@ export const login = async (req, res) => {
         id: user.id,
         nombre: user.nombre,
         email: user.email,
-        rol: user.rol,
-        sucursal_id: user.sucursal_id
+        rol: user.rol
       }
     });
 
@@ -173,7 +171,7 @@ export const verifyToken = async (req, res) => {
 
     // Buscar usuario actualizado
     const [rows] = await pool.query(
-      'SELECT id, nombre, email, rol, telefono, sucursal_id, activo FROM usuarios WHERE id = ?',
+      'SELECT id, nombre, email, rol, telefono, activo FROM usuarios WHERE id = ?',
       [decoded.id]
     );
 
@@ -193,8 +191,7 @@ export const verifyToken = async (req, res) => {
         nombre: user.nombre,
         email: user.email,
         rol: user.rol,
-        telefono: user.telefono,
-        sucursal_id: user.sucursal_id
+        telefono: user.telefono
       }
     });
 
@@ -247,8 +244,7 @@ export const refreshToken = async (req, res) => {
     const newToken = await createToken({
       id: decoded.id,
       nombre: decoded.nombre,
-      rol: decoded.rol,
-      sucursal: decoded.sucursal
+      rol: decoded.rol
     });
 
     // Configurar cookie

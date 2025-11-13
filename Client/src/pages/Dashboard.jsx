@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 import NavBar from '../shared/NavBar';
 import WelcomeView from '../shared/WelcomeView';
@@ -17,13 +18,10 @@ import '../pagesCss/Dashboard.css';
 const Dashboard = () => {
     const location = useLocation();
     const [vistaActual, setVistaActual] = useState('resumen');
-    const [userRole, setUserRole] = useState(null);
-
-    // Obtener el rol del usuario guardado en localStorage para usarlo en la verificación de permisos
-    React.useEffect(() => {
-        const role = localStorage.getItem('userRole');
-        setUserRole(role);
-    }, []);
+    const { user } = useAuth();
+    
+    // Obtener el rol del usuario desde el contexto de autenticación
+    const userRole = user?.rol || user?.role || null;
 
 	// Detectar la vista actual basada en la URL
 	React.useEffect(() => {

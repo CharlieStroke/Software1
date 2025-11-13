@@ -15,6 +15,7 @@ async function startServer() {
       console.log(`URL: http://localhost:${PORT}`);
       console.log(`API: http://localhost:${PORT}/api`);
     });
+    
 
   } catch (error) {
     console.error('Error crítico al inicializar el servidor:', error);

@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import '../sharedCss/NavBar.css';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function NavBar() {
-    const [userRole, setUserRole] = useState(null);
-
-    useEffect(() => {
-        const role = localStorage.getItem('userRole');
-        setUserRole(role);
-    }, []);
+    const { user, logout } = useAuth();
+    const userRole = user?.rol || user?.role || null;
 
     // Definir qué enlaces puede ver cada rol
     const permisosPorRol = {
@@ -22,8 +19,7 @@ export default function NavBar() {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('userRole');
-        window.location.href = '/';
+        logout();
     };
 
     return (

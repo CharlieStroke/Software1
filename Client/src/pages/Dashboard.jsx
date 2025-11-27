@@ -11,6 +11,7 @@ import Pedidos from '../components/pedidos/components/pedidos';
 import Usuarios from '../components/usuarios/components/usuarios';
 import Meseros from '../components/meseros/components/meseros';
 import Sucursal from '../components/sucursal/components/sucursal';
+import Metricas from '../components/dueños/components/metricas';
 
 import '../pagesCss/Dashboard.css';
 
@@ -31,6 +32,7 @@ const Dashboard = () => {
 		else if (path.includes('/usuarios')) setVistaActual('usuarios');
 		else if (path.includes('/meseros')) setVistaActual('meseros');
 		else if (path.includes('/sucursal')) setVistaActual('sucursal');
+		else if (path.includes('/metricas')) setVistaActual('metricas');
 		else setVistaActual('resumen');
 	}, [location]);
 
@@ -43,9 +45,9 @@ const Dashboard = () => {
         
         const permisosPorRol = {
             'mesero': ['pedidos', 'comandas'],
-            'dueño': ['pedidos', 'comandas', 'inventario', 'usuarios', 'meseros', 'sucursal'],
+            'dueño': ['pedidos', 'comandas', 'inventario', 'usuarios', 'meseros', 'sucursal', 'metricas'],
             'gerente': ['pedidos', 'comandas', 'inventario', 'meseros'],
-            'admin': ['pedidos', 'comandas', 'inventario', 'usuarios', 'meseros', 'sucursal']
+            'admin': ['pedidos', 'comandas', 'inventario', 'usuarios', 'meseros', 'sucursal', 'metricas']
         };
         
         return permisosPorRol[userRole]?.includes(vista) || false;
@@ -75,6 +77,8 @@ const Dashboard = () => {
 				return <Meseros />;
 			case 'sucursal':
 				return <Sucursal />;
+			case 'metricas':
+				return <Metricas />;
             default:
                 return <WelcomeView userRole={userRole} />;
 		}

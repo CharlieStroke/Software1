@@ -10,8 +10,8 @@ export default function NavBar() {
 
     // Definir qué enlaces puede ver cada rol
     const permisosPorRol = {
-        'admin': ['pedidos', 'comandas', 'inventario', 'usuarios', 'meseros', 'sucursal'],
-        'dueño': ['pedidos', 'comandas', 'inventario', 'meseros'],
+        'admin': ['pedidos', 'comandas', 'inventario', 'usuarios', 'meseros', 'sucursal', 'metricas'],
+        'dueño': ['pedidos', 'comandas', 'inventario', 'meseros', 'metricas'],
         'gerente': ['pedidos', 'comandas', 'inventario'],
         'mesero': ['pedidos', 'comandas'],
         'cocinero': [],
@@ -85,6 +85,13 @@ export default function NavBar() {
                         <li>
                             <NavLink to="/sucursal" className={({ isActive }) => isActive ? 'active' : ''} onClick={cerrarMenu}>
                                 Sucursal
+                            </NavLink>
+                        </li>
+                    )}
+                    {puedeVer('metricas') && (
+                        <li>
+                            <NavLink to="/metricas" className={({ isActive }) => isActive ? 'active' : ''} onClick={cerrarMenu}>
+                                Métricas
                             </NavLink>
                         </li>
                     )}

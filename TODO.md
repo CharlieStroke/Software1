@@ -1,5 +1,0 @@
-- [ ] Add fecha field to hardcoded comandas in comandas.jsx
-- [ ] Add sortOrder and searchTerm states
-- [ ] Add filter and sort logic functions
-- [ ] Update JSX to include search input and sort buttons in header
-- [ ] Update comandas.css for search/sort UI styles

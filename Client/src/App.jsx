@@ -24,6 +24,7 @@ function App() {
           <Route path="/usuarios" element={<ProtectedRoute allowedRoles={["admin"]}><Dashboard /></ProtectedRoute>} />
           <Route path="/meseros" element={<ProtectedRoute allowedRoles={["admin","gerente","dueño"]}><Dashboard /></ProtectedRoute>} />
           <Route path="/sucursal" element={<ProtectedRoute allowedRoles={["admin","gerente","dueño"]}><Dashboard /></ProtectedRoute>} />
+          <Route path="/metricas" element={<ProtectedRoute allowedRoles={["admin","dueño"]}><Dashboard /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </Router>

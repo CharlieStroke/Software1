@@ -6,10 +6,10 @@ export const getComandas = async (req, res) => {
     const { rol, sucursal_id: userSucursalId } = req.user;
     const { estatus, fecha } = req.query;
     
-    console.log('🔍 getComandas - req.query:', req.query);
-    console.log('🔍 getComandas - fecha:', fecha, 'tipo:', typeof fecha);
-    console.log('🔍 getComandas - estatus:', estatus);
-    console.log('🔍 getComandas - user:', { rol, sucursal_id: userSucursalId });
+    console.log('getComandas - req.query:', req.query);
+    console.log('getComandas - fecha:', fecha, 'tipo:', typeof fecha);
+    console.log('getComandas - estatus:', estatus);
+    console.log('getComandas - user:', { rol, sucursal_id: userSucursalId });
 
     let query = `
       SELECT 
@@ -52,14 +52,14 @@ export const getComandas = async (req, res) => {
 
     query += ' GROUP BY c.id ORDER BY c.fecha_creacion DESC';
 
-    console.log('🔍 SQL Query:', query);
-    console.log('🔍 SQL Params:', params);
+    console.log('SQL Query:', query);
+    console.log('SQL Params:', params);
 
     const [comandas] = await pool.query(query, params);
     
-    console.log('✅ Comandas encontradas:', comandas.length);
+    console.log('Comandas encontradas:', comandas.length);
     if (comandas.length > 0) {
-      console.log('✅ Primera comanda:', comandas[0]);
+      console.log('Primera comanda:', comandas[0]);
     }
     
     res.json({ comandas, total: comandas.length });

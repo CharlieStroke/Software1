@@ -151,7 +151,7 @@ const ModalPago = ({ comanda, onClose, onPagoExitoso }) => {
             <img src={billingIcon} alt="Pago" width="24" height="24" style={{ verticalAlign: 'middle', marginRight: '0.5rem' }} />
             Procesar Pago - Comanda #{comanda.id}
           </h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose}>X</button>
         </div>
 
         <div className="modal-body">

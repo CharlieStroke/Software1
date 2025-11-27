@@ -213,7 +213,7 @@ const Usuarios = () => {
         title="Gestión de Usuarios"
         buttonText={mostrarFormulario ? 'Cancelar' : 'Nuevo Usuario'}
         buttonOnClick={() => setMostrarFormulario(!mostrarFormulario)}
-        buttonIcon={mostrarFormulario ? '✖' : '+'}
+        buttonIcon={mostrarFormulario ? 'X' : '+'}
         showButton={user?.rol === 'admin' || user?.rol === 'dueño'}
       />
 

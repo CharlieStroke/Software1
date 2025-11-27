@@ -12,7 +12,7 @@ export const validateSchema = (schema) => (req, res, next) => {
         message: err.message
       }));
       
-      console.error('❌ Error de validación Zod:', errors);
+      console.error('Error de validación Zod:', errors);
       
       return res.status(400).json({ 
         message: 'Error en la validación de datos',

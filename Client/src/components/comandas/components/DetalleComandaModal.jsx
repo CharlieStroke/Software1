@@ -70,7 +70,7 @@ const DetalleComanda = ({ comanda, onClose }) => {
       <div className="modal-content modal-detalle-comanda" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Detalle de Comanda #{comanda.id}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose}>X</button>
         </div>
 
         {loading ? (

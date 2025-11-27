@@ -23,7 +23,7 @@ export const registrarPago = async (req, res) => {
 
     const usuario_id = req.user.id;
 
-    console.log('💳 Iniciando registro de pago:', {
+    console.log('Iniciando registro de pago:', {
       comanda_id,
       metodo_pago,
       monto_total,
@@ -35,7 +35,7 @@ export const registrarPago = async (req, res) => {
       'SELECT id, estatus, total_pagado FROM comandas WHERE id = ?',
       [comanda_id]
     );
-    console.log('📋 Comanda encontrada:', comandas[0]);
+    console.log('Comanda encontrada:', comandas[0]);
 
     if (comandas.length === 0) {
       await connection.rollback();
@@ -92,13 +92,13 @@ export const registrarPago = async (req, res) => {
       const [checkColumn] = await connection.query(
         "SHOW COLUMNS FROM pedidos LIKE 'estado_pago'"
       );
-      console.log('🔍 Campo estado_pago existe:', checkColumn.length > 0);
+      console.log('Campo estado_pago existe:', checkColumn.length > 0);
       if (checkColumn.length === 0) {
-        console.error('❌ ERROR: El campo estado_pago NO existe en la tabla pedidos');
-        console.error('❌ Por favor ejecuta el script: Database/agregar_estado_pago.sql');
+        console.error('ERROR: El campo estado_pago NO existe en la tabla pedidos');
+        console.error('Por favor ejecuta el script: Database/agregar_estado_pago.sql');
       }
     } catch (err) {
-      console.error('❌ Error al verificar campo estado_pago:', err.message);
+      console.error('Error al verificar campo estado_pago:', err.message);
     }
 
     // Verificar pedidos antes de actualizar
@@ -106,14 +106,14 @@ export const registrarPago = async (req, res) => {
       'SELECT id, numero_pedido, estado, IFNULL(estado_pago, "NO_EXISTE") as estado_pago FROM pedidos WHERE comanda_id = ?',
       [comanda_id]
     );
-    console.log('🔍 Pedidos antes de actualizar:', pedidosAntes);
+    console.log('Pedidos antes de actualizar:', pedidosAntes);
 
     // Marcar todos los pedidos pendientes como pagados
     const [resultUpdate] = await connection.query(
       'UPDATE pedidos SET estado_pago = "pagado" WHERE comanda_id = ? AND (estado_pago = "pendiente" OR estado_pago IS NULL)',
       [comanda_id]
     );
-    console.log('✅ Resultado del UPDATE estado_pago:', {
+    console.log('Resultado del UPDATE estado_pago:', {
       affectedRows: resultUpdate.affectedRows,
       changedRows: resultUpdate.changedRows,
       comanda_id
@@ -124,11 +124,11 @@ export const registrarPago = async (req, res) => {
       'SELECT id, numero_pedido, estado, IFNULL(estado_pago, "NO_EXISTE") as estado_pago FROM pedidos WHERE comanda_id = ?',
       [comanda_id]
     );
-    console.log('✅ Pedidos después de actualizar:', pedidosDespues);
+    console.log('Pedidos después de actualizar:', pedidosDespues);
 
     // Actualizar el total pagado en la comanda
     const nuevoTotalPagado = totalYaPagado + monto_total;
-    console.log('💰 Actualizando total_pagado:', {
+    console.log('Actualizando total_pagado:', {
       totalYaPagado,
       monto_total,
       nuevoTotalPagado

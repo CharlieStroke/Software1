@@ -73,7 +73,7 @@ export const useInventario = () => {
         sucursal_id: user?.sucursal_id || datosProducto.sucursal_id
       };
 
-      console.log('🔍 DEBUG - Creando producto:', {
+      console.log('DEBUG - Creando producto:', {
         user: user,
         sucursal_id_usuario: user?.sucursal_id,
         datos_enviados: data

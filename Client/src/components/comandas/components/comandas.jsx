@@ -129,7 +129,7 @@ const Comandas = () => {
         title={fechaFiltro ? `Comandas del ${new Date(fechaFiltro + 'T00:00:00').toLocaleDateString('es-ES')}` : 'Todas las Comandas'}
         buttonText="Actualizar"
         buttonOnClick={recargar}
-        buttonIcon="🔄"
+        buttonIcon="↻"
         showButton={true}
       />
 

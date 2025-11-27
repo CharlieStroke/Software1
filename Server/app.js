@@ -14,6 +14,7 @@ import pedidosRoutes from "./routes/pedidos.routes.js";
 import movimientosRoutes from "./routes/movimientos.routes.js";
 import comandasRoutes from "./routes/comandas.routes.js";
 import pagosRoutes from "./routes/pagos.routes.js";
+import metricasRoutes from "./routes/metricas.routes.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/api', pedidosRoutes);
 app.use('/api', movimientosRoutes);
 app.use('/api', comandasRoutes);
 app.use('/api', pagosRoutes);
+app.use('/api/metricas', metricasRoutes);
 
 // Ruta de prueba
 app.get('/api/test', (req, res) => {

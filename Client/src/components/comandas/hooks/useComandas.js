@@ -21,8 +21,8 @@ export const useComandas = (fecha = null, estatus = null) => {
       setLoading(true);
       setError(null);
 
-      console.log('🎯 cargarComandas llamada con:', { fechaFiltro, estatusFiltro });
-      console.log('🎯 Tipo de fechaFiltro:', typeof fechaFiltro);
+      console.log('cargarComandas llamada con:', { fechaFiltro, estatusFiltro });
+      console.log('Tipo de fechaFiltro:', typeof fechaFiltro);
 
       const filtros = {};
       // Asegurarse de que fechaFiltro sea un string válido
@@ -31,17 +31,17 @@ export const useComandas = (fecha = null, estatus = null) => {
       }
       if (estatusFiltro) filtros.estatus = estatusFiltro;
       
-      console.log('🎯 Filtros a enviar:', filtros);
+      console.log('Filtros a enviar:', filtros);
 
       // Obtener comandas con filtros
       const response = await comandasApi.getComandasApi(filtros);
       
-      console.log('✅ Respuesta recibida:', response);
+      console.log('Respuesta recibida:', response);
       
       // La API devuelve un objeto {comandas: [], total: n}
       const comandasData = response.comandas || (Array.isArray(response) ? response : []);
       
-      console.log('✅ Comandas procesadas:', comandasData.length);
+      console.log('Comandas procesadas:', comandasData.length);
 
       setComandas(comandasData);
 

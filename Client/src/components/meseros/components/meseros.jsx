@@ -162,7 +162,7 @@ const Meseros = () => {
         title="Gestión de Meseros"
         buttonText={mostrarFormulario ? 'Cancelar' : 'Nuevo Mesero'}
         buttonOnClick={() => setMostrarFormulario(!mostrarFormulario)}
-        buttonIcon={mostrarFormulario ? '✖' : '+'}
+        buttonIcon={mostrarFormulario ? 'X' : '+'}
         showButton={true}
       />
 

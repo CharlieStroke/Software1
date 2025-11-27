@@ -21,7 +21,7 @@ router.get('/categorias/:id', authRequired, getCategoriaById);
 router.post(
   '/categorias',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   validateSchema(categoriaSchema),
   createCategoria
 );
@@ -29,7 +29,7 @@ router.post(
 router.put(
   '/categorias/:id',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   validateSchema(updateCategoriaSchema),
   updateCategoria
 );
@@ -37,14 +37,14 @@ router.put(
 router.patch(
   '/categorias/:id/toggle',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   toggleCategoriaStatus
 );
 
 router.delete(
   '/categorias/:id',
   authRequired,
-  isAdmin,
+  checkRole('admin', 'dueño'),
   deleteCategoria
 );
 

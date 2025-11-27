@@ -26,7 +26,8 @@ export const authRequired = (req, res, next) => {
       nombre: decoded.nombre || 'Usuario',
       apellido: decoded.apellido || '',
       rol: decoded.rol || decoded.role || 'usuario',
-      sucursal: decoded.sucursal
+      sucursal_id: decoded.sucursal_id || decoded.sucursal,
+      sucursal: decoded.sucursal // mantener compatibilidad
     };
     
     // Mantener consistencia con la propiedad isAdmin
@@ -56,6 +57,7 @@ export const authRequiredForLogout = (req, res, next) => {
       nombre: decoded.nombre || 'Usuario',
       apellido: decoded.apellido || '',
       rol: decoded.rol || decoded.role || 'usuario',
+      sucursal_id: decoded.sucursal_id || decoded.sucursal,
       sucursal: decoded.sucursal
     };
     
@@ -119,6 +121,7 @@ export const isAdmin = async (req, res, next) => {
       nombre: decoded.nombre,
       apellido: decoded.apellido,
       rol: userRole[0].rol,
+      sucursal_id: decoded.sucursal_id || decoded.sucursal,
       sucursal: decoded.sucursal
     };
 

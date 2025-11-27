@@ -3,7 +3,6 @@ import {
   getPedidos,
   getPedidosBySucursal,
   getPedidosHoy,
-  getComandas,
   getPedidoById,
   createPedido,
   updateEstadoPedido,
@@ -19,16 +18,13 @@ const router = Router();
 router.get('/pedidos', authRequired, getPedidos);
 router.get('/pedidos/hoy', authRequired, getPedidosHoy);
 router.get('/pedidos/sucursal/:sucursalId', authRequired, getPedidosBySucursal);
-router.get('/pedidos/estadisticas', authRequired, checkRole(['admin', 'gerente', 'dueño']), getEstadisticasPedidos);
+router.get('/pedidos/estadisticas', authRequired, checkRole('admin', 'gerente', 'dueño'), getEstadisticasPedidos);
 router.get('/pedidos/:id', authRequired, getPedidoById);
-
-// Comandas (resumen de pedidos)
-router.get('/comandas', authRequired, getComandas);
 
 router.post(
   '/pedidos',
   authRequired,
-  checkRole(['admin', 'gerente', 'mesero', 'cajero']),
+  checkRole('admin', 'gerente', 'mesero', 'cajero'),
   validateSchema(pedidoSchema),
   createPedido
 );
@@ -43,7 +39,7 @@ router.patch(
 router.post(
   '/pedidos/:id/cancelar',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   validateSchema(cancelarPedidoSchema),
   cancelarPedido
 );

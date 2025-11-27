@@ -31,6 +31,8 @@ export const createPedido = async (data) => {
   return response.data;
 };
 
+export const createPedidoApi = createPedido; // Alias para compatibilidad
+
 export const updateEstadoPedido = async (id, estado) => {
   const response = await api.patch(`/pedidos/${id}/estado`, { estado });
   return response.data;

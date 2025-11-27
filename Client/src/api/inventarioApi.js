@@ -45,3 +45,16 @@ export const deleteProducto = async (id) => {
   const response = await api.delete(`/inventario/${id}`);
   return response.data;
 };
+
+// Obtener inventario activo (solo productos activos)
+export const getInventarioActivoApi = async () => {
+  const response = await api.get('/inventario');
+  // El endpoint devuelve { productos: [...], total: ... }
+  const productos = response.data.productos || response.data;
+  // Filtrar solo productos activos
+  if (Array.isArray(productos)) {
+    return productos.filter(producto => producto.activo === 1 || producto.activo === true);
+  }
+  return [];
+};
+

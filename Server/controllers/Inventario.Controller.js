@@ -34,9 +34,10 @@ export const getInventarioBySucursal = async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-      `SELECT i.*, c.nombre as categoria_nombre
+      `SELECT i.*, c.nombre as categoria_nombre, s.nombre as sucursal_nombre
        FROM inventario i
        LEFT JOIN categorias_productos c ON i.categoria_id = c.id
+       LEFT JOIN sucursales s ON i.sucursal_id = s.id
        WHERE i.sucursal_id = ?
        ORDER BY i.nombre ASC`,
       [sucursalId]

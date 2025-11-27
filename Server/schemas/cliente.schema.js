@@ -26,7 +26,7 @@ export const clienteSchema = z.object({
     .optional()
     .nullable(),
 
-  id_sucursal: z.number()
+  id_sucursal: z.coerce.number()
     .int()
     .positive()
     .optional()
@@ -59,7 +59,7 @@ export const updateClienteSchema = z.object({
     .optional()
     .nullable(),
 
-  id_sucursal: z.number()
+  id_sucursal: z.coerce.number()
     .int()
     .positive()
     .optional()

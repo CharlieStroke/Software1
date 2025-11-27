@@ -10,26 +10,26 @@ export const inventarioSchema = z.object({
     .optional()
     .nullable(),
 
-  categoria_id: z.number()
+  categoria_id: z.coerce.number()
     .int()
     .positive()
     .optional()
     .nullable(),
 
-  precio: z.number()
+  precio: z.coerce.number()
     .min(0, 'El precio no puede ser negativo')
     .optional(),
 
-  costo: z.number()
+  costo: z.coerce.number()
     .min(0, 'El costo no puede ser negativo')
     .optional(),
 
-  stock_actual: z.number()
+  stock_actual: z.coerce.number()
     .int()
     .min(0, 'El stock no puede ser negativo')
     .optional(),
 
-  stock_minimo: z.number()
+  stock_minimo: z.coerce.number()
     .int()
     .min(0, 'El stock mínimo no puede ser negativo')
     .optional(),
@@ -37,7 +37,7 @@ export const inventarioSchema = z.object({
   unidad_medida: z.enum(['unidad', 'kg', 'gr', 'lt', 'ml', 'porcion'])
     .optional(),
 
-  sucursal_id: z.number()
+  sucursal_id: z.coerce.number()
     .int()
     .positive()
     .optional()
@@ -54,26 +54,26 @@ export const updateInventarioSchema = z.object({
     .optional()
     .nullable(),
 
-  categoria_id: z.number()
+  categoria_id: z.coerce.number()
     .int()
     .positive()
     .optional()
     .nullable(),
 
-  precio: z.number()
+  precio: z.coerce.number()
     .min(0, 'El precio no puede ser negativo')
     .optional(),
 
-  costo: z.number()
+  costo: z.coerce.number()
     .min(0, 'El costo no puede ser negativo')
     .optional(),
 
-  stock_actual: z.number()
+  stock_actual: z.coerce.number()
     .int()
     .min(0, 'El stock no puede ser negativo')
     .optional(),
 
-  stock_minimo: z.number()
+  stock_minimo: z.coerce.number()
     .int()
     .min(0, 'El stock mínimo no puede ser negativo')
     .optional(),
@@ -81,7 +81,7 @@ export const updateInventarioSchema = z.object({
   unidad_medida: z.enum(['unidad', 'kg', 'gr', 'lt', 'ml', 'porcion'])
     .optional(),
 
-  sucursal_id: z.number()
+  sucursal_id: z.coerce.number()
     .int()
     .positive()
     .optional()

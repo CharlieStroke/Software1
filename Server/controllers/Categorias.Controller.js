@@ -77,24 +77,24 @@ export const getCategoriaById = async (req, res) => {
 
 // Crear nueva categoría
 export const createCategoria = async (req, res) => {
-  const { nombre, descripcion } = req.body;
+  const { nombre, descripcion, sucursal_id } = req.body;
 
   try {
-    // Verificar si ya existe
+    // Verificar si ya existe en la misma sucursal
     const [existing] = await pool.query(
-      'SELECT id FROM categorias_productos WHERE nombre = ?',
-      [nombre]
+      'SELECT id FROM categorias_productos WHERE nombre = ? AND (sucursal_id = ? OR sucursal_id IS NULL)',
+      [nombre, sucursal_id || null]
     );
 
     if (existing.length > 0) {
       return res.status(400).json({ 
-        message: 'Ya existe una categoría con ese nombre' 
+        message: 'Ya existe una categoría con ese nombre en esta sucursal' 
       });
     }
 
     const [result] = await pool.query(
-      'INSERT INTO categorias_productos (nombre, descripcion, activa) VALUES (?, ?, TRUE)',
-      [nombre, descripcion || null]
+      'INSERT INTO categorias_productos (nombre, descripcion, sucursal_id, activa) VALUES (?, ?, ?, TRUE)',
+      [nombre, descripcion || null, sucursal_id || null]
     );
 
     logAction('Categoría creada', { 
@@ -125,7 +125,7 @@ export const createCategoria = async (req, res) => {
 // Actualizar categoría
 export const updateCategoria = async (req, res) => {
   const { id } = req.params;
-  const { nombre, descripcion, activa } = req.body;
+  const { nombre, descripcion, activa, sucursal_id } = req.body;
 
   try {
     const [existing] = await pool.query(
@@ -141,13 +141,13 @@ export const updateCategoria = async (req, res) => {
 
     if (nombre) {
       const [duplicate] = await pool.query(
-        'SELECT id FROM categorias_productos WHERE nombre = ? AND id != ?',
-        [nombre, id]
+        'SELECT id FROM categorias_productos WHERE nombre = ? AND id != ? AND (sucursal_id = ? OR sucursal_id IS NULL)',
+        [nombre, id, sucursal_id || null]
       );
 
       if (duplicate.length > 0) {
         return res.status(400).json({ 
-          message: 'Ya existe otra categoría con ese nombre' 
+          message: 'Ya existe otra categoría con ese nombre en esta sucursal' 
         });
       }
     }
@@ -156,9 +156,10 @@ export const updateCategoria = async (req, res) => {
       `UPDATE categorias_productos 
        SET nombre = COALESCE(?, nombre),
            descripcion = ?,
-           activa = COALESCE(?, activa)
+           activa = COALESCE(?, activa),
+           sucursal_id = ?
        WHERE id = ?`,
-      [nombre, descripcion, activa, id]
+      [nombre, descripcion, activa, sucursal_id, id]
     );
 
     logAction('Categoría actualizada', { categoriaId: id, userId: req.user?.id });

@@ -8,6 +8,11 @@ export const categoriaSchema = z.object({
 
   descripcion: z.string()
     .optional()
+    .nullable(),
+
+  sucursal_id: z.coerce.number()
+    .positive('El ID de sucursal debe ser un número positivo')
+    .optional()
     .nullable()
 });
 

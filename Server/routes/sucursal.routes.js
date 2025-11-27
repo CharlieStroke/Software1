@@ -41,7 +41,7 @@ router.get(
 router.get(
   '/sucursales/:id/stats',
   authRequired,
-  checkRole(['admin', 'gerente', 'dueño']),
+  checkRole('admin', 'gerente', 'dueño'),
   getSucursalStats
 );
 
@@ -50,7 +50,7 @@ router.get(
 router.post(
   '/sucursales',
   authRequired,
-  checkRole(['admin', 'dueño']),
+  checkRole('admin', 'dueño'),
   validateSchema(sucursalSchema),
   createSucursal
 );
@@ -59,7 +59,7 @@ router.post(
 router.put(
   '/sucursales/:id',
   authRequired,
-  checkRole(['admin', 'gerente', 'dueño']),
+  checkRole('admin', 'gerente', 'dueño'),
   validateSchema(updateSucursalSchema),
   updateSucursal
 );
@@ -68,7 +68,7 @@ router.put(
 router.patch(
   '/sucursales/:id/toggle',
   authRequired,
-  checkRole(['admin', 'dueño']),
+  checkRole('admin', 'dueño'),
   toggleSucursalStatus
 );
 

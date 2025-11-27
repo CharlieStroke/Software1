@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../sharedCss/NavBar.css';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -6,15 +6,20 @@ import { useAuth } from '../context/AuthContext';
 export default function NavBar() {
     const { user, logout } = useAuth();
     const userRole = user?.rol || user?.role || null;
+    const [menuAbierto, setMenuAbierto] = useState(false);
 
     // Definir qué enlaces puede ver cada rol
     const permisosPorRol = {
+        'admin': ['pedidos', 'comandas', 'inventario', 'usuarios', 'meseros', 'sucursal'],
+        'dueño': ['pedidos', 'comandas', 'inventario', 'meseros'],
+        'gerente': ['pedidos', 'comandas', 'inventario'],
         'mesero': ['pedidos', 'comandas'],
-        'dueño': ['pedidos', 'comandas', 'inventario', 'usuarios'],
-        'admin': ['pedidos', 'comandas', 'inventario', 'usuarios', 'dueños', 'sucursal']
+        'cocinero': [],
+        'cajero': []
     };
 
     const puedeVer = (seccion) => {
+        if (!userRole) return false;
         return permisosPorRol[userRole]?.includes(seccion) || false;
     };
 
@@ -22,54 +27,69 @@ export default function NavBar() {
         logout();
     };
 
+    const toggleMenu = () => {
+        setMenuAbierto(!menuAbierto);
+    };
+
+    const cerrarMenu = () => {
+        setMenuAbierto(false);
+    };
+
     return (
         <>
             <nav className="navbar">
-                <ul className="navbar-list">
+                <button className="menu-hamburguesa" onClick={toggleMenu} aria-label="Toggle menu">
+                    <span className={menuAbierto ? 'hamburguesa-icon abierto' : 'hamburguesa-icon'}>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+                <ul className={`navbar-list ${menuAbierto ? 'menu-abierto' : ''}`}>
                     {puedeVer('pedidos') && (
                         <li>
-                            <NavLink to="/pedidos" className={({ isActive }) => isActive ? 'active' : ''}>
+                            <NavLink to="/pedidos" className={({ isActive }) => isActive ? 'active' : ''} onClick={cerrarMenu}>
                                 Pedidos
                             </NavLink>
                         </li>
                     )}
                     {puedeVer('comandas') && (
                         <li>
-                            <NavLink to="/comandas" className={({ isActive }) => isActive ? 'active' : ''}>
+                            <NavLink to="/comandas" className={({ isActive }) => isActive ? 'active' : ''} onClick={cerrarMenu}>
                                 Comandas
                             </NavLink>
                         </li>
                     )}
                     {puedeVer('inventario') && (
                         <li>
-                            <NavLink to="/inventario" className={({ isActive }) => isActive ? 'active' : ''}>
+                            <NavLink to="/inventario" className={({ isActive }) => isActive ? 'active' : ''} onClick={cerrarMenu}>
                                 Inventario
+                            </NavLink>
+                        </li>
+                    )}
+                    {puedeVer('meseros') && (
+                        <li>
+                            <NavLink to="/meseros" className={({ isActive }) => isActive ? 'active' : ''} onClick={cerrarMenu}>
+                                Meseros
                             </NavLink>
                         </li>
                     )}
                     {puedeVer('usuarios') && (
                         <li>
-                            <NavLink to="/usuarios" className={({ isActive }) => isActive ? 'active' : ''}>
+                            <NavLink to="/usuarios" className={({ isActive }) => isActive ? 'active' : ''} onClick={cerrarMenu}>
                                 Usuarios
-                            </NavLink>
-                        </li>
-                    )}
-                    {puedeVer('dueños') && (
-                        <li>
-                            <NavLink to="/dueños" className={({ isActive }) => isActive ? 'active' : ''}>
-                                Dueños
                             </NavLink>
                         </li>
                     )}
                     {puedeVer('sucursal') && (
                         <li>
-                            <NavLink to="/sucursal" className={({ isActive }) => isActive ? 'active' : ''}>
+                            <NavLink to="/sucursal" className={({ isActive }) => isActive ? 'active' : ''} onClick={cerrarMenu}>
                                 Sucursal
                             </NavLink>
                         </li>
                     )}
                     <li>
-                        <button onClick={handleLogout} className="logout-button">
+                        <button onClick={() => { handleLogout(); cerrarMenu(); }} className="logout-button">
                             Cerrar Sesión
                         </button>
                     </li>

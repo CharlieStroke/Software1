@@ -7,14 +7,43 @@ function logAction(message, data = {}) {
   console.log(`[${timestamp}] USUARIOS: ${message}`, data);
 }
 
-// Obtener todos los usuarios
+// Obtener todos los usuarios (con filtros según rol)
 export const getUsers = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      'SELECT id, nombre, apellido, email, telefono, rol, id_sucursal, activo, fecha_creacion FROM usuarios ORDER BY fecha_creacion DESC'
-    );
+    const userRole = req.user.rol;
+    const userSucursal = req.user.id_sucursal;
+    let query = 'SELECT id, nombre, apellido, email, telefono, rol, id_sucursal, activo, fecha_creacion FROM usuarios';
+    let params = [];
 
-    logAction('Listado de usuarios', { count: rows.length, userId: req.user?.id });
+    // Admin: ve todos los usuarios
+    if (userRole === 'admin') {
+      query += ' ORDER BY fecha_creacion DESC';
+    }
+    // Dueño: ve solo usuarios de su sucursal (todos los roles)
+    else if (userRole === 'dueño') {
+      query += ' WHERE id_sucursal = ? ORDER BY fecha_creacion DESC';
+      params.push(userSucursal);
+    }
+    // Gerente: ve solo meseros, cocineros y cajeros de su sucursal
+    else if (userRole === 'gerente') {
+      query += ' WHERE id_sucursal = ? AND rol IN (?, ?, ?) ORDER BY fecha_creacion DESC';
+      params.push(userSucursal, 'mesero', 'cocinero', 'cajero');
+    }
+    // Otros roles: no tienen acceso
+    else {
+      return res.status(403).json({ 
+        message: 'No tienes permisos para ver usuarios' 
+      });
+    }
+
+    const [rows] = await pool.query(query, params);
+
+    logAction('Listado de usuarios', { 
+      count: rows.length, 
+      userId: req.user?.id, 
+      userRole,
+      filteredBy: userRole 
+    });
 
     res.json({
       usuarios: rows,
@@ -30,12 +59,36 @@ export const getUsers = async (req, res) => {
   }
 };
 
-// Obtener usuarios activos
+// Obtener usuarios activos (con filtros según rol)
 export const getUsersActivos = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      'SELECT id, nombre, apellido, email, telefono, rol, id_sucursal, activo FROM usuarios WHERE activo = TRUE ORDER BY nombre ASC'
-    );
+    const userRole = req.user.rol;
+    const userSucursal = req.user.id_sucursal;
+    let query = 'SELECT id, nombre, apellido, email, telefono, rol, id_sucursal, activo FROM usuarios WHERE activo = TRUE';
+    let params = [];
+
+    // Admin: ve todos los usuarios activos
+    if (userRole === 'admin') {
+      query += ' ORDER BY nombre ASC';
+    }
+    // Dueño: ve solo usuarios activos de su sucursal
+    else if (userRole === 'dueño') {
+      query += ' AND id_sucursal = ? ORDER BY nombre ASC';
+      params.push(userSucursal);
+    }
+    // Gerente: ve solo meseros, cocineros y cajeros activos de su sucursal
+    else if (userRole === 'gerente') {
+      query += ' AND id_sucursal = ? AND rol IN (?, ?, ?) ORDER BY nombre ASC';
+      params.push(userSucursal, 'mesero', 'cocinero', 'cajero');
+    }
+    // Otros roles: no tienen acceso
+    else {
+      return res.status(403).json({ 
+        message: 'No tienes permisos para ver usuarios' 
+      });
+    }
+
+    const [rows] = await pool.query(query, params);
 
     res.json({
       usuarios: rows,
@@ -105,8 +158,26 @@ export const getUserById = async (req, res) => {
 // Crear nuevo usuario
 export const createUser = async (req, res) => {
   const { nombre, apellido, email, password, telefono, rol, id_sucursal } = req.body;
+  const userRole = req.user.rol;
+  const userSucursal = req.user.id_sucursal;
 
   try {
+    // VALIDACIÓN DE PERMISOS: Dueño solo puede crear roles inferiores
+    if (userRole === 'dueño') {
+      const rolesPermitidos = ['gerente', 'mesero', 'cocinero', 'cajero'];
+      if (!rolesPermitidos.includes(rol)) {
+        return res.status(403).json({ 
+          message: 'No tienes permisos para crear usuarios con ese rol' 
+        });
+      }
+      // Dueño solo puede crear en su sucursal
+      if (id_sucursal !== userSucursal) {
+        return res.status(403).json({ 
+          message: 'Solo puedes crear usuarios en tu sucursal' 
+        });
+      }
+    }
+
     // Verificar si el email ya existe
     const [existingUser] = await pool.query(
       'SELECT id FROM usuarios WHERE email = ?',
@@ -132,7 +203,8 @@ export const createUser = async (req, res) => {
       userId: result.insertId, 
       email, 
       rol,
-      createdBy: req.user?.id 
+      createdBy: req.user?.id,
+      createdByRole: userRole
     });
 
     // Obtener el usuario recién creado (sin password)
@@ -159,11 +231,13 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   const { id } = req.params;
   const { nombre, apellido, email, telefono, rol, id_sucursal, activo, password } = req.body;
+  const userRole = req.user.rol;
+  const userSucursal = req.user.id_sucursal;
 
   try {
-    // Verificar si el usuario existe
+    // Verificar si el usuario existe y obtener sus datos
     const [existingUser] = await pool.query(
-      'SELECT id FROM usuarios WHERE id = ?',
+      'SELECT id, rol, id_sucursal FROM usuarios WHERE id = ?',
       [id]
     );
 
@@ -171,6 +245,29 @@ export const updateUser = async (req, res) => {
       return res.status(404).json({ 
         message: 'Usuario no encontrado' 
       });
+    }
+
+    const targetUser = existingUser[0];
+
+    // VALIDACIÓN DE PERMISOS: Dueño solo puede editar usuarios de roles inferiores en su sucursal
+    if (userRole === 'dueño') {
+      const rolesPermitidos = ['gerente', 'mesero', 'cocinero', 'cajero'];
+      if (!rolesPermitidos.includes(targetUser.rol)) {
+        return res.status(403).json({ 
+          message: 'No tienes permisos para editar usuarios con ese rol' 
+        });
+      }
+      if (targetUser.id_sucursal !== userSucursal) {
+        return res.status(403).json({ 
+          message: 'Solo puedes editar usuarios de tu sucursal' 
+        });
+      }
+      // Si intenta cambiar el rol, verificar que el nuevo rol sea permitido
+      if (rol && !rolesPermitidos.includes(rol)) {
+        return res.status(403).json({ 
+          message: 'No tienes permisos para asignar ese rol' 
+        });
+      }
     }
 
     // Verificar si el nuevo email ya existe en otro usuario
@@ -263,10 +360,12 @@ export const updateUser = async (req, res) => {
 // Activar/Desactivar usuario
 export const toggleUserStatus = async (req, res) => {
   const { id } = req.params;
+  const userRole = req.user.rol;
+  const userSucursal = req.user.id_sucursal;
 
   try {
     const [user] = await pool.query(
-      'SELECT id, nombre, apellido, email, activo FROM usuarios WHERE id = ?',
+      'SELECT id, nombre, apellido, email, activo, rol, id_sucursal FROM usuarios WHERE id = ?',
       [id]
     );
 
@@ -276,7 +375,24 @@ export const toggleUserStatus = async (req, res) => {
       });
     }
 
-    const newStatus = !user[0].activo;
+    const targetUser = user[0];
+
+    // VALIDACIÓN DE PERMISOS: Dueño solo puede toggle usuarios de roles inferiores en su sucursal
+    if (userRole === 'dueño') {
+      const rolesPermitidos = ['gerente', 'mesero', 'cocinero', 'cajero'];
+      if (!rolesPermitidos.includes(targetUser.rol)) {
+        return res.status(403).json({ 
+          message: 'No tienes permisos para cambiar el estado de usuarios con ese rol' 
+        });
+      }
+      if (targetUser.id_sucursal !== userSucursal) {
+        return res.status(403).json({ 
+          message: 'Solo puedes cambiar el estado de usuarios de tu sucursal' 
+        });
+      }
+    }
+
+    const newStatus = !targetUser.activo;
 
     await pool.query(
       'UPDATE usuarios SET activo = ? WHERE id = ?',
@@ -307,10 +423,12 @@ export const toggleUserStatus = async (req, res) => {
 // Eliminar usuario
 export const deleteUser = async (req, res) => {
   const { id } = req.params;
+  const userRole = req.user.rol;
+  const userSucursal = req.user.id_sucursal;
 
   try {
     const [user] = await pool.query(
-      'SELECT id, email FROM usuarios WHERE id = ?',
+      'SELECT id, email, rol, id_sucursal FROM usuarios WHERE id = ?',
       [id]
     );
 
@@ -318,6 +436,23 @@ export const deleteUser = async (req, res) => {
       return res.status(404).json({ 
         message: 'Usuario no encontrado' 
       });
+    }
+
+    const targetUser = user[0];
+
+    // VALIDACIÓN DE PERMISOS: Dueño solo puede eliminar usuarios de roles inferiores en su sucursal
+    if (userRole === 'dueño') {
+      const rolesPermitidos = ['gerente', 'mesero', 'cocinero', 'cajero'];
+      if (!rolesPermitidos.includes(targetUser.rol)) {
+        return res.status(403).json({ 
+          message: 'No tienes permisos para eliminar usuarios con ese rol' 
+        });
+      }
+      if (targetUser.id_sucursal !== userSucursal) {
+        return res.status(403).json({ 
+          message: 'Solo puedes eliminar usuarios de tu sucursal' 
+        });
+      }
     }
 
     // Verificar si tiene datos relacionados

@@ -24,7 +24,7 @@ router.get('/inventario/:id', authRequired, getProductoById);
 router.post(
   '/inventario',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   validateSchema(inventarioSchema),
   createProducto
 );
@@ -32,7 +32,7 @@ router.post(
 router.put(
   '/inventario/:id',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   validateSchema(updateInventarioSchema),
   updateProducto
 );
@@ -40,7 +40,7 @@ router.put(
 router.post(
   '/inventario/:id/ajustar',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   validateSchema(ajustarStockSchema),
   ajustarStock
 );
@@ -48,14 +48,14 @@ router.post(
 router.patch(
   '/inventario/:id/toggle',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   toggleProductoStatus
 );
 
 router.delete(
   '/inventario/:id',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   deleteProducto
 );
 

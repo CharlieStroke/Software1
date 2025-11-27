@@ -31,7 +31,7 @@ export const userSchema = z.object({
     errorMap: () => ({ message: 'Rol inválido' })
   }).optional(),
 
-  id_sucursal: z.number()
+  id_sucursal: z.coerce.number()
     .int('El ID de sucursal debe ser un número entero')
     .positive('El ID de sucursal debe ser positivo')
     .optional()
@@ -68,7 +68,7 @@ export const updateUserSchema = z.object({
   rol: z.enum(['admin', 'gerente', 'mesero', 'cocinero', 'cajero', 'dueño'])
     .optional(),
 
-  id_sucursal: z.number()
+  id_sucursal: z.coerce.number()
     .int('El ID de sucursal debe ser un número entero')
     .positive('El ID de sucursal debe ser positivo')
     .optional()

@@ -37,7 +37,7 @@ export const sucursalSchema = z.object({
     .optional()
     .nullable(),
 
-  capacidad: z.number()
+  capacidad: z.coerce.number()
     .int('La capacidad debe ser un número entero')
     .min(0, 'La capacidad no puede ser negativa')
     .optional()
@@ -86,7 +86,7 @@ export const updateSucursalSchema = z.object({
     .optional()
     .nullable(),
 
-  capacidad: z.number()
+  capacidad: z.coerce.number()
     .int('La capacidad debe ser un número entero')
     .min(0, 'La capacidad no puede ser negativa')
     .optional()

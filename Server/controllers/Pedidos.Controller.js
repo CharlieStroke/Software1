@@ -27,11 +27,14 @@ export const getPedidos = async (req, res) => {
       `SELECT p.*, 
         CONCAT(c.nombre, ' ', COALESCE(c.apellido, '')) as cliente_nombre,
         CONCAT(u.nombre, ' ', u.apellido) as usuario_nombre,
-        s.nombre as sucursal_nombre
+        s.nombre as sucursal_nombre,
+        com.id as comanda_id,
+        com.estatus as comanda_estatus
        FROM pedidos p
        LEFT JOIN clientes c ON p.cliente_id = c.id
        LEFT JOIN usuarios u ON p.usuario_id = u.id
        LEFT JOIN sucursales s ON p.sucursal_id = s.id
+       LEFT JOIN comandas com ON p.comanda_id = com.id
        ORDER BY p.fecha_pedido DESC
        LIMIT 100`
     );
@@ -58,10 +61,13 @@ export const getPedidosBySucursal = async (req, res) => {
     const [rows] = await pool.query(
       `SELECT p.*, 
         CONCAT(c.nombre, ' ', COALESCE(c.apellido, '')) as cliente_nombre,
-        CONCAT(u.nombre, ' ', u.apellido) as usuario_nombre
+        CONCAT(u.nombre, ' ', u.apellido) as usuario_nombre,
+        com.id as comanda_id,
+        com.estatus as comanda_estatus
        FROM pedidos p
        LEFT JOIN clientes c ON p.cliente_id = c.id
        LEFT JOIN usuarios u ON p.usuario_id = u.id
+       LEFT JOIN comandas com ON p.comanda_id = com.id
        WHERE p.sucursal_id = ?
        ORDER BY p.fecha_pedido DESC
        LIMIT 100`,
@@ -89,11 +95,14 @@ export const getPedidosHoy = async (req, res) => {
       `SELECT p.*, 
         CONCAT(c.nombre, ' ', COALESCE(c.apellido, '')) as cliente_nombre,
         CONCAT(u.nombre, ' ', u.apellido) as usuario_nombre,
-        s.nombre as sucursal_nombre
+        s.nombre as sucursal_nombre,
+        com.id as comanda_id,
+        com.estatus as comanda_estatus
        FROM pedidos p
        LEFT JOIN clientes c ON p.cliente_id = c.id
        LEFT JOIN usuarios u ON p.usuario_id = u.id
        LEFT JOIN sucursales s ON p.sucursal_id = s.id
+       LEFT JOIN comandas com ON p.comanda_id = com.id
        WHERE DATE(p.fecha_pedido) = CURDATE()
        ORDER BY p.fecha_pedido DESC`
     );
@@ -113,36 +122,6 @@ export const getPedidosHoy = async (req, res) => {
 };
 
 // Obtener comandas (resumen de pedidos en preparación)
-export const getComandas = async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT p.*, 
-        CONCAT(c.nombre, ' ', COALESCE(c.apellido, '')) as cliente_nombre,
-        s.nombre as sucursal_nombre,
-        COUNT(dp.id) as total_items
-       FROM pedidos p
-       LEFT JOIN clientes c ON p.cliente_id = c.id
-       LEFT JOIN sucursales s ON p.sucursal_id = s.id
-       LEFT JOIN detalle_pedidos dp ON p.id = dp.pedido_id
-       WHERE p.estado IN ('pendiente', 'en_preparacion')
-       GROUP BY p.id
-       ORDER BY p.fecha_pedido DESC`
-    );
-
-    res.json({
-      comandas: rows,
-      total: rows.length
-    });
-
-  } catch (error) {
-    console.error('Error al obtener comandas:', error);
-    res.status(500).json({ 
-      message: 'Error al obtener comandas',
-      error: error.message 
-    });
-  }
-};
-
 // Obtener pedido por ID con detalles
 export const getPedidoById = async (req, res) => {
   const { id } = req.params;
@@ -154,11 +133,15 @@ export const getPedidoById = async (req, res) => {
         c.telefono as cliente_telefono,
         c.direccion as cliente_direccion,
         CONCAT(u.nombre, ' ', u.apellido) as usuario_nombre,
-        s.nombre as sucursal_nombre
+        s.nombre as sucursal_nombre,
+        com.id as comanda_id,
+        com.estatus as comanda_estatus,
+        com.fecha_creacion as comanda_fecha_creacion
        FROM pedidos p
        LEFT JOIN clientes c ON p.cliente_id = c.id
        LEFT JOIN usuarios u ON p.usuario_id = u.id
        LEFT JOIN sucursales s ON p.sucursal_id = s.id
+       LEFT JOIN comandas com ON p.comanda_id = com.id
        WHERE p.id = ?`,
       [id]
     );
@@ -198,13 +181,56 @@ export const createPedido = async (req, res) => {
     sucursal_id,
     tipo_pedido,
     notas,
+    comanda_id, // ID de comanda existente (opcional)
     detalles // Array de {producto_id, cantidad, precio_unitario, notas_item}
   } = req.body;
+
+  // Determinar sucursal_id: usar del body, o del usuario autenticado como fallback
+  const finalSucursalId = sucursal_id || req.user?.sucursal_id;
+
+  // Validar que tengamos una sucursal válida
+  if (!finalSucursalId) {
+    return res.status(400).json({ 
+      message: 'Se requiere sucursal_id. Por favor especifique una sucursal para el pedido.' 
+    });
+  }
 
   const connection = await pool.getConnection();
   
   try {
     await connection.beginTransaction();
+
+    let finalComandaId = comanda_id;
+
+    // Si no se proporciona comanda_id, crear una nueva comanda automáticamente
+    if (!finalComandaId && tipo_pedido === 'mesa') {
+      const [resultComanda] = await connection.query(
+        'INSERT INTO comandas (sucursal_id, usuario_id, estatus) VALUES (?, ?, ?)',
+        [finalSucursalId, req.user?.id, 'abierta']
+      );
+      finalComandaId = resultComanda.insertId;
+      
+      logAction('Comanda creada automáticamente', { 
+        comandaId: finalComandaId, 
+        userId: req.user?.id 
+      });
+    }
+
+    // Validar que la comanda esté abierta (si se proporcionó una)
+    if (finalComandaId) {
+      const [comanda] = await connection.query(
+        'SELECT estatus FROM comandas WHERE id = ?',
+        [finalComandaId]
+      );
+      
+      if (comanda.length === 0) {
+        throw new Error('Comanda no encontrada');
+      }
+      
+      if (comanda[0].estatus !== 'abierta') {
+        throw new Error('La comanda debe estar abierta para agregar pedidos');
+      }
+    }
 
     // Generar número de pedido
     const numero_pedido = await generarNumeroPedido();
@@ -212,9 +238,9 @@ export const createPedido = async (req, res) => {
     // Crear pedido
     const [resultPedido] = await connection.query(
       `INSERT INTO pedidos 
-        (numero_pedido, cliente_id, usuario_id, sucursal_id, tipo_pedido, notas, estado, subtotal, impuestos, descuento, total) 
-       VALUES (?, ?, ?, ?, ?, ?, 'pendiente', 0, 0, 0, 0)`,
-      [numero_pedido, cliente_id || null, req.user?.id, sucursal_id, tipo_pedido || 'mesa', notas || null]
+        (numero_pedido, cliente_id, usuario_id, sucursal_id, comanda_id, tipo_pedido, notas, estado, subtotal, impuestos, descuento, total) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente', 0, 0, 0, 0)`,
+      [numero_pedido, cliente_id || null, req.user?.id, finalSucursalId, finalComandaId || null, tipo_pedido || 'mesa', notas || null]
     );
 
     const pedidoId = resultPedido.insertId;
@@ -263,6 +289,7 @@ export const createPedido = async (req, res) => {
     logAction('Pedido creado', { 
       pedidoId, 
       numero_pedido,
+      comandaId: finalComandaId,
       total,
       userId: req.user?.id 
     });
@@ -270,16 +297,19 @@ export const createPedido = async (req, res) => {
     // Obtener pedido completo
     const [pedidoCompleto] = await pool.query(
       `SELECT p.*, 
-        CONCAT(c.nombre, ' ', COALESCE(c.apellido, '')) as cliente_nombre
+        CONCAT(c.nombre, ' ', COALESCE(c.apellido, '')) as cliente_nombre,
+        com.id as comanda_id
        FROM pedidos p
        LEFT JOIN clientes c ON p.cliente_id = c.id
+       LEFT JOIN comandas com ON p.comanda_id = com.id
        WHERE p.id = ?`,
       [pedidoId]
     );
 
     res.status(201).json({
       message: 'Pedido creado exitosamente',
-      pedido: pedidoCompleto[0]
+      pedido: pedidoCompleto[0],
+      comanda_creada: finalComandaId && !comanda_id ? true : false
     });
 
   } catch (error) {

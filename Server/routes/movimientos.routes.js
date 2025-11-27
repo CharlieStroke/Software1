@@ -10,14 +10,14 @@ const router = Router();
 router.get(
   '/movimientos',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   getMovimientos
 );
 
 router.get(
   '/movimientos/producto/:productoId',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   getMovimientosByProducto
 );
 

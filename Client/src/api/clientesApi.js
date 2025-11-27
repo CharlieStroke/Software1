@@ -35,3 +35,16 @@ export const deleteCliente = async (id) => {
   const response = await api.delete(`/clientes/${id}`);
   return response.data;
 };
+
+// Obtener clientes activos
+export const getClientesActivosApi = async () => {
+  const response = await api.get('/clientes');
+  // El endpoint devuelve { clientes: [...], total: ... }
+  const clientes = response.data.clientes || response.data;
+  // Filtrar solo clientes activos si existe el campo activo
+  if (Array.isArray(clientes) && clientes.length > 0 && 'activo' in clientes[0]) {
+    return clientes.filter(cliente => cliente.activo === 1 || cliente.activo === true);
+  }
+  return Array.isArray(clientes) ? clientes : [];
+};
+

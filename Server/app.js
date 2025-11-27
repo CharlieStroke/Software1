@@ -12,6 +12,8 @@ import clientesRoutes from "./routes/clientes.routes.js";
 import inventarioRoutes from "./routes/inventario.routes.js";
 import pedidosRoutes from "./routes/pedidos.routes.js";
 import movimientosRoutes from "./routes/movimientos.routes.js";
+import comandasRoutes from "./routes/comandas.routes.js";
+import pagosRoutes from "./routes/pagos.routes.js";
 
 const app = express();
 
@@ -37,6 +39,8 @@ app.use('/api', clientesRoutes);
 app.use('/api', inventarioRoutes);
 app.use('/api', pedidosRoutes);
 app.use('/api', movimientosRoutes);
+app.use('/api', comandasRoutes);
+app.use('/api', pagosRoutes);
 
 // Ruta de prueba
 app.get('/api/test', (req, res) => {

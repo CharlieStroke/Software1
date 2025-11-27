@@ -15,19 +15,19 @@ import { userSchema, updateUserSchema } from '../schemas/user.schema.js';
 
 const router = Router();
 
-// Obtener todos los usuarios (admin y gerente)
+// Obtener usuarios (admin ve todos, dueño ve su sucursal, gerente ve meseros/cocineros/cajeros)
 router.get(
   '/usuarios',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   getUsers
 );
 
-// Obtener usuarios activos (admin y gerente)
+// Obtener usuarios activos (admin ve todos, dueño ve su sucursal, gerente ve meseros/cocineros/cajeros)
 router.get(
   '/usuarios/activos',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   getUsersActivos
 );
 
@@ -35,49 +35,49 @@ router.get(
 router.get(
   '/usuarios/sucursal/:sucursalId',
   authRequired,
-  checkRole(['admin', 'gerente', 'dueño']),
+  checkRole('admin', 'gerente', 'dueño'),
   getUsersBySucursal
 );
 
-// Obtener usuario por ID (admin y gerente)
+// Obtener usuario por ID (admin, dueño y gerente)
 router.get(
   '/usuarios/:id',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   getUserById
 );
 
-// Crear nuevo usuario (solo admin)
+// Crear nuevo usuario (admin y dueño - dueño solo roles inferiores)
 router.post(
   '/usuarios',
   authRequired,
-  isAdmin,
+  checkRole('admin', 'dueño'),
   validateSchema(userSchema),
   createUser
 );
 
-// Actualizar usuario (solo admin)
+// Actualizar usuario (admin y dueño - dueño solo roles inferiores)
 router.put(
   '/usuarios/:id',
   authRequired,
-  isAdmin,
+  checkRole('admin', 'dueño'),
   validateSchema(updateUserSchema),
   updateUser
 );
 
-// Activar/Desactivar usuario (solo admin)
+// Activar/Desactivar usuario (admin y dueño - dueño solo roles inferiores)
 router.patch(
   '/usuarios/:id/toggle',
   authRequired,
-  isAdmin,
+  checkRole('admin', 'dueño'),
   toggleUserStatus
 );
 
-// Eliminar usuario (solo admin)
+// Eliminar usuario (admin y dueño - dueño solo roles inferiores)
 router.delete(
   '/usuarios/:id',
   authRequired,
-  isAdmin,
+  checkRole('admin', 'dueño'),
   deleteUser
 );
 

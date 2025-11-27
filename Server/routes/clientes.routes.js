@@ -36,7 +36,7 @@ router.put(
 router.delete(
   '/clientes/:id',
   authRequired,
-  checkRole(['admin', 'gerente']),
+  checkRole('admin', 'dueño', 'gerente'),
   deleteCliente
 );
 

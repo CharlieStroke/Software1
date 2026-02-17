@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useAuth } from '../../../context/AuthContext';
+import { useSucursal } from '../hooks/useSucursal';
+import ModuleHeader from '../../../shared/ModuleHeader';
 import '../componentsCss/sucursal.css';
+import playIcon from '../../../assets/play.svg';
+import pauseIcon from '../../../assets/pause.svg';
+import deleteIcon from '../../../assets/delete.svg';
+import editIcon from '../../../assets/edit.svg';
 
 // Esquema de validación para sucursales
 const sucursalValidationSchema = Yup.object({
@@ -44,54 +51,19 @@ const sucursalValidationSchema = Yup.object({
 });
 
 export default function Sucursal() {
-  const [sucursales, setSucursales] = useState([]);
+  const { user } = useAuth();
+  const {
+    sucursales,
+    loading,
+    error,
+    crearSucursal,
+    actualizarSucursal,
+    toggleEstado: toggleEstadoApi,
+    eliminarSucursal: eliminarSucursalApi
+  } = useSucursal();
+
   const [mostrarModal, setMostrarModal] = useState(false);
   const [sucursalEditando, setSucursalEditando] = useState(null);
-
-  useEffect(() => {
-    const sucursalesIniciales = [
-      {
-        id: 1,
-        nombre: 'Sucursal Centro',
-        direccion: 'Calle 50 #12-34, Centro',
-        telefono: '5760123456789',
-        email: 'centro@restaurant.com',
-        dueño: 'Ana García',
-        horarioApertura: '08:00',
-        horarioCierre: '22:00',
-        capacidad: 80,
-        fechaApertura: '2020-01-15',
-        activa: true
-      },
-      {
-        id: 2,
-        nombre: 'Sucursal Norte',
-        direccion: 'Carrera 15 #85-42, Zona Rosa',
-        telefono: '5760134567890',
-        email: 'norte@restaurant.com',
-        dueño: 'Carlos Mendez',
-        horarioApertura: '09:00',
-        horarioCierre: '23:00',
-        capacidad: 120,
-        fechaApertura: '2021-06-10',
-        activa: true
-      },
-      {
-        id: 3,
-        nombre: 'Sucursal Sur',
-        direccion: 'Avenida 68 #45-23, Zona Sur',
-        telefono: '5760145678901',
-        email: 'sur@restaurant.com',
-        dueño: 'Laura Jiménez',
-        horarioApertura: '10:00',
-        horarioCierre: '21:00',
-        capacidad: 60,
-        fechaApertura: '2022-03-20',
-        activa: false
-      }
-    ];
-    setSucursales(sucursalesIniciales);
-  }, []);
 
   const abrirModal = (sucursal = null) => {
     setSucursalEditando(sucursal);
@@ -103,64 +75,70 @@ export default function Sucursal() {
     setSucursalEditando(null);
   };
 
-  const guardarSucursal = async (valores, { resetForm }) => {
+  const guardarSucursal = async (valores, { resetForm, setSubmitting }) => {
     try {
-      await sucursalValidationSchema.validate(valores, { abortEarly: false });
-      
-      const datosParaGuardar = {
-        ...valores,
-        capacidad: valores.capacidad ? parseInt(valores.capacidad) : 0
-      };
-
+      let result;
       if (sucursalEditando) {
-        // Editar sucursal existente
-        setSucursales(prev => prev.map(sucursal => 
-          sucursal.id === sucursalEditando.id 
-            ? { ...sucursal, ...datosParaGuardar }
-            : sucursal
-        ));
+        result = await actualizarSucursal(sucursalEditando.id, valores);
       } else {
-        // Agregar nueva sucursal
-        const nuevaSucursal = {
-          id: Date.now(),
-          ...datosParaGuardar
-        };
-        setSucursales(prev => [...prev, nuevaSucursal]);
+        result = await crearSucursal(valores);
       }
 
-      resetForm();
-      cerrarModal();
+      if (result.success) {
+        resetForm();
+        cerrarModal();
+        alert(`Sucursal ${sucursalEditando ? 'actualizada' : 'creada'} exitosamente`);
+      } else {
+        alert(`Error: ${result.error}`);
+      }
     } catch (error) {
       console.error('Error al guardar sucursal:', error);
-      throw error;
+      alert('Error al procesar la solicitud');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const eliminarSucursal = (id) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta sucursal?')) {
-      setSucursales(prev => prev.filter(sucursal => sucursal.id !== id));
+  const handleEliminarSucursal = async (id, nombre) => {
+    if (window.confirm(`¿Estás seguro de eliminar la sucursal "${nombre}"?`)) {
+      const result = await eliminarSucursalApi(id);
+      if (!result.success) {
+        alert(`Error: ${result.error}`);
+      }
     }
   };
 
-  const toggleEstado = (id) => {
-    setSucursales(prev => prev.map(sucursal => 
-      sucursal.id === id 
-        ? { ...sucursal, activa: !sucursal.activa }
-        : sucursal
-    ));
+  const handleToggleEstado = async (id) => {
+    const result = await toggleEstadoApi(id);
+    if (!result.success) {
+      alert(`Error: ${result.error}`);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="sucursal-container">
+        <div className="spinner"></div>
+        <p>Cargando sucursales...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="sucursal-container">
-      <div className="sucursal-header">
-        <h1>Gestión de Sucursales</h1>
-        <button 
-          className="btn-agregar-sucursal"
-          onClick={() => abrirModal()}
-        >
-          + Agregar Sucursal
-        </button>
-      </div>
+      <ModuleHeader 
+        title="Gestión de Sucursales"
+        buttonText="Agregar Sucursal"
+        buttonOnClick={() => abrirModal()}
+        buttonIcon="+"
+        showButton={user?.rol === 'admin' || user?.rol === 'dueño'}
+      />
+
+      {error && (
+        <div className="alert alert-danger">
+          {error}
+        </div>
+      )}
 
       <div className="sucursales-grid">
         {sucursales.map(sucursal => (
@@ -183,20 +161,24 @@ export default function Sucursal() {
                 className="btn-editar"
                 onClick={() => abrirModal(sucursal)}
               >
-                Editar
+                <img src={editIcon} alt="Edit" width="16" height="16" />
               </button>
-              <button 
-                className={`btn-toggle ${sucursal.activa ? 'desactivar' : 'activar'}`}
-                onClick={() => toggleEstado(sucursal.id)}
-              >
-                {sucursal.activa ? 'Desactivar' : 'Activar'}
-              </button>
-              <button 
-                className="btn-eliminar"
-                onClick={() => eliminarSucursal(sucursal.id)}
-              >
-                Eliminar
-              </button>
+              {(user?.rol === 'admin' || user?.rol === 'dueño') && (
+                <>
+                  <button 
+                    className={`btn-toggle ${sucursal.activa ? 'desactivar' : 'activar'}`}
+                    onClick={() => handleToggleEstado(sucursal.id)}
+                  >
+                    <img src={sucursal.activa ? pauseIcon : playIcon} alt={sucursal.activa ? 'Pause' : 'Play'} width="16" height="16" />
+                  </button>
+                  <button 
+                    className="btn-eliminar"
+                    onClick={() => handleEliminarSucursal(sucursal.id, sucursal.nombre)}
+                  >
+                    <img src={deleteIcon} alt="Delete" width="16" height="16" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ))}

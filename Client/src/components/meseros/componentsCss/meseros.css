@@ -1,0 +1,174 @@
+/* MESEROS CONTAINER */
+.meseros-container {
+  padding: var(--spacing-lg);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* HEADER */
+.meseros-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.meseros-header h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--texto-principal);
+  margin: 0;
+}
+
+/* FILTROS */
+.filtros-container {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  background: var(--fondo-card);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--sombra-card);
+}
+
+.filtros-container .form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filtros-container label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.filtros-container input,
+.filtros-container select {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--borde-input);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.95rem;
+}
+
+.filtros-container input:focus,
+.filtros-container select:focus {
+  outline: none;
+  border-color: var(--verde-principal);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* AVATAR */
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--verde-principal), var(--verde-hover));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* CARD ESPECÍFICOS MESEROS */
+.item-card .card-header {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
+}
+
+.item-card .card-info h3 {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1.1rem;
+  color: var(--texto-principal);
+}
+
+.item-card .card-info p {
+  margin: var(--spacing-xs) 0;
+  font-size: 0.9rem;
+  color: var(--texto-secundario);
+}
+
+.item-card .card-info .email {
+  color: var(--verde-principal);
+  font-weight: 500;
+}
+
+.item-card .card-info .telefono {
+  color: var(--texto-secundario);
+}
+
+.item-card.inactivo {
+  opacity: 0.6;
+  border-color: var(--gris-medio);
+}
+
+.item-card .card-body {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md);
+}
+
+.item-card .card-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--borde-card);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .meseros-container {
+    padding: var(--spacing-md);
+  }
+
+  .meseros-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .meseros-header .btn {
+    width: 100%;
+  }
+
+  .filtros-container {
+    flex-direction: column;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .item-card .card-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .item-card .card-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .meseros-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .item-card .card-actions {
+    flex-wrap: wrap;
+  }
+
+  .item-card .card-actions .btn {
+    flex: 1;
+  }
+}

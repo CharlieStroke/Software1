@@ -45,7 +45,7 @@ const AccessDenied = ({ userRole, attemptedSection }) => {
                     <ul className="permissions-list">
                         {allowedSections.map((section, index) => (
                             <li key={index} className="permission-item">
-                                <span className="permission-icon">✓</span>
+                                <span className="permission-icon">✔</span>
                                 {section}
                             </li>
                         ))}

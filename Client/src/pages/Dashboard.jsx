@@ -6,12 +6,12 @@ import NavBar from '../shared/NavBar';
 import WelcomeView from '../shared/WelcomeView';
 import AccessDenied from '../shared/AccessDenied';
 import Comandas from '../components/comandas/components/comandas';
-import DetalleComanda from '../components/comandas/components/DetalleComanda';
 import Inventario from '../components/inventario/components/inventario';
 import Pedidos from '../components/pedidos/components/pedidos';
 import Usuarios from '../components/usuarios/components/usuarios';
-import Dueños from '../components/dueños/components/dueños';
+import Meseros from '../components/meseros/components/meseros';
 import Sucursal from '../components/sucursal/components/sucursal';
+import Metricas from '../components/dueños/components/metricas';
 
 import '../pagesCss/Dashboard.css';
 
@@ -26,13 +26,13 @@ const Dashboard = () => {
 	// Detectar la vista actual basada en la URL
 	React.useEffect(() => {
 		const path = location.pathname;
-		if (path.includes('/comandas/detalle/')) setVistaActual('detalle-comanda');
-		else if (path.includes('/comandas')) setVistaActual('comandas');
+		if (path.includes('/comandas')) setVistaActual('comandas');
 		else if (path.includes('/inventario')) setVistaActual('inventario');
 		else if (path.includes('/pedidos')) setVistaActual('pedidos');
 		else if (path.includes('/usuarios')) setVistaActual('usuarios');
-		else if (path.includes('/dueños')) setVistaActual('dueños');
+		else if (path.includes('/meseros')) setVistaActual('meseros');
 		else if (path.includes('/sucursal')) setVistaActual('sucursal');
+		else if (path.includes('/metricas')) setVistaActual('metricas');
 		else setVistaActual('resumen');
 	}, [location]);
 
@@ -44,9 +44,10 @@ const Dashboard = () => {
         if (vista === 'resumen') return true;
         
         const permisosPorRol = {
-            'mesero': ['pedidos', 'comandas', 'detalle-comanda'],
-            'dueño': ['pedidos', 'comandas', 'detalle-comanda', 'inventario', 'usuarios'],
-            'admin': ['pedidos', 'comandas', 'detalle-comanda', 'inventario', 'usuarios', 'dueños', 'sucursal']
+            'mesero': ['pedidos', 'comandas'],
+            'dueño': ['pedidos', 'comandas', 'inventario', 'usuarios', 'meseros', 'sucursal', 'metricas'],
+            'gerente': ['pedidos', 'comandas', 'inventario', 'meseros'],
+            'admin': ['pedidos', 'comandas', 'inventario', 'usuarios', 'meseros', 'sucursal', 'metricas']
         };
         
         return permisosPorRol[userRole]?.includes(vista) || false;
@@ -66,18 +67,18 @@ const Dashboard = () => {
 		switch(vistaActual) {
 			case 'comandas':
 				return <Comandas />;
-			case 'detalle-comanda':
-				return <DetalleComanda />;
 			case 'inventario':
 				return <Inventario />;
 			case 'pedidos':
 				return <Pedidos />;
 			case 'usuarios':
 				return <Usuarios />;
-			case 'dueños':
-				return <Dueños />;
+			case 'meseros':
+				return <Meseros />;
 			case 'sucursal':
 				return <Sucursal />;
+			case 'metricas':
+				return <Metricas />;
             default:
                 return <WelcomeView userRole={userRole} />;
 		}

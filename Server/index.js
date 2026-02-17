@@ -1,10 +1,17 @@
-import { PORT } from './config.js';
+import { PORT, DB_HOST, DB_PORT, DB_USER, DB_NAME } from './config.js';
 import app from './app.js';
 import { testConnection } from './db.js';
 
 // Función para inicializar el servidor
 async function startServer() {
   try {
+    // Mostrar configuración de DB (sin password)
+    console.log('Configuración de base de datos:');
+    console.log(`  Host: ${DB_HOST}`);
+    console.log(`  Port: ${DB_PORT}`);
+    console.log(`  User: ${DB_USER}`);
+    console.log(`  Database: ${DB_NAME}`);
+    
     // Probar conexión a la base de datos
     console.log('Probando conexión a la base de datos...');
     await testConnection();

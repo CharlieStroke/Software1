@@ -1,0 +1,355 @@
+/* COMANDAS CONTAINER */
+.comandas-container {
+  padding: var(--spacing-lg);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* HEADER */
+.comandas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.comandas-header h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--texto-principal);
+  margin: 0;
+}
+
+/* COMANDAS GRID */
+.comandas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+/* COMANDA CARD */
+.comanda-card {
+  background: var(--fondo-card);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--sombra-card);
+  border-left: 4px solid var(--gris-medio);
+  transition: all var(--transition-normal);
+}
+
+.comanda-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* ESTADOS */
+.comanda-card.estado-pendiente {
+  border-left-color: var(--advertencia);
+}
+
+.comanda-card.estado-en_preparacion {
+  border-left-color: var(--informacion);
+}
+
+.comanda-card.estado-listo {
+  border-left-color: var(--exito);
+}
+
+.comanda-card.estado-entregado {
+  border-left-color: var(--gris-medio);
+  opacity: 0.8;
+}
+
+.comanda-card.estado-cancelado {
+  border-left-color: var(--peligro);
+  opacity: 0.6;
+}
+
+/* COMANDA HEADER */
+.comanda-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-sm);
+}
+
+.comanda-info h3 {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1.1rem;
+  color: var(--texto-principal);
+}
+
+.comanda-info p {
+  margin: var(--spacing-xs) 0;
+  font-size: 0.9rem;
+  color: var(--texto-secundario);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comanda-info p img {
+  flex-shrink: 0;
+}
+
+.comanda-mesa {
+  font-weight: 600;
+  color: var(--verde-principal);
+}
+
+.comanda-hora {
+  font-size: 0.85rem;
+}
+
+.comanda-mesero {
+  font-style: italic;
+}
+
+/* COMANDA TOTAL */
+.comanda-total {
+  padding: var(--spacing-sm);
+  background: var(--verde-fondo);
+  border-radius: var(--border-radius-sm);
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.comanda-total strong {
+  font-size: 1.2rem;
+  color: var(--verde-principal);
+}
+
+/* COMANDA ACTIONS */
+.comanda-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+/* STATS CON COLORES */
+.stat-card.warning {
+  border-left: 4px solid var(--advertencia);
+}
+
+.stat-card.warning .stat-value {
+  color: var(--advertencia);
+}
+
+.stat-card.info {
+  border-left: 4px solid var(--informacion);
+}
+
+.stat-card.info .stat-value {
+  color: var(--informacion);
+}
+
+.stat-card.success {
+  border-left: 4px solid var(--exito);
+}
+
+.stat-card.success .stat-value {
+  color: var(--exito);
+}
+
+.stat-card.secondary {
+  border-left: 4px solid var(--gris-medio);
+}
+
+.stat-card.secondary .stat-value {
+  color: var(--gris-medio);
+}
+
+/* DETALLE COMANDA MODAL */
+.detalle-section {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--borde-card);
+}
+
+.detalle-section:last-child {
+  border-bottom: none;
+}
+
+.detalle-section h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--texto-principal);
+  font-size: 1.1rem;
+}
+
+.detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.detalle-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.detalle-item strong {
+  color: var(--texto-secundario);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.detalle-item span,
+.detalle-item p {
+  color: var(--texto-principal);
+  margin: 0;
+}
+
+.item-notas {
+  font-size: 0.85rem;
+  color: var(--texto-secundario);
+  font-style: italic;
+  margin-top: var(--spacing-xs);
+}
+
+/* DETALLE TOTALES */
+.detalle-totales {
+  background: var(--verde-fondo);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-sm) 0;
+  font-size: 1rem;
+}
+
+.total-row.descuento {
+  color: var(--peligro);
+}
+
+.total-row.total-final {
+  border-top: 2px solid var(--verde-principal);
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-md);
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--verde-principal);
+}
+
+/* STAT CARD ACTIVO */
+.stat-card.active {
+  border: 2px solid var(--verde-principal);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+  transform: scale(1.05);
+}
+
+/* ESTADO SELECCIONADO */
+.estado-seleccionado {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--verde-fondo);
+  border: 2px solid var(--verde-principal);
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  color: var(--verde-principal);
+  text-align: center;
+  min-width: 150px;
+}
+
+/* BADGE ESTATUS */
+.badge-abierta {
+  background-color: var(--advertencia);
+  color: white;
+}
+
+.badge-cerrada {
+  background-color: var(--exito);
+  color: white;
+}
+
+.badge-cancelada {
+  background-color: var(--peligro);
+  color: white;
+}
+
+/* ESTADOS DE COMANDA CARD */
+.comanda-card.estatus-abierta {
+  border-left-color: var(--advertencia);
+}
+
+.comanda-card.estatus-cerrada {
+  border-left-color: var(--exito);
+}
+
+.comanda-card.estatus-cancelada {
+  border-left-color: var(--peligro);
+}
+
+/* INPUT DATE */
+input[type="date"] {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--gris-claro);
+  border-radius: var(--border-radius-sm);
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+  transition: border-color var(--transition-normal);
+}
+
+input[type="date"]:hover {
+  border-color: var(--verde-principal);
+}
+
+input[type="date"]:focus {
+  outline: none;
+  border-color: var(--verde-principal);
+  box-shadow: 0 0 0 2px rgba(72, 187, 120, 0.1);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .comandas-container {
+    padding: var(--spacing-md);
+  }
+
+  .comandas-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .comandas-header .btn {
+    width: 100%;
+  }
+
+  .comandas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .comanda-actions {
+    flex-direction: column;
+  }
+
+  .comanda-actions .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .comandas-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .detalle-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .estado-seleccionado {
+    min-width: auto;
+    width: 100%;
+  }
+}
+

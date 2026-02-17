@@ -406,3 +406,331 @@
 .form-row .form-group {
     flex: 1;
 }
+
+/* ESTILOS ADICIONALES PARA NUEVAS FUNCIONALIDADES */
+.filtro-input {
+    padding: 0.5rem;
+    border: 1px solid var(--verde-claro);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    min-width: 200px;
+}
+
+.filtro-input:focus {
+    outline: none;
+    border-color: var(--verde-principal);
+}
+
+.btn-recargar {
+    background-color: var(--verde-principal);
+    color: var(--blanco);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.btn-recargar:hover {
+    background-color: var(--verde-hover);
+}
+
+/* CATEGORÍAS PANEL */
+.header-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-categorias {
+    background-color: var(--gris-oscuro);
+    color: var(--blanco);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-categorias:hover {
+    background-color: #3a4149;
+    transform: translateY(-1px);
+}
+
+.categorias-panel {
+    background: var(--blanco);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px var(--sombra-verde);
+}
+
+.categorias-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.categorias-header h3 {
+    color: var(--verde-oscuro);
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.btn-nueva-categoria {
+    background-color: var(--verde-principal);
+    color: var(--blanco);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.btn-nueva-categoria:hover {
+    background-color: var(--verde-hover);
+}
+
+.categorias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.categoria-card {
+    background: var(--verde-fondo);
+    border: 2px solid var(--verde-claro);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s;
+}
+
+.categoria-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--sombra-verde);
+}
+
+.categoria-info h4 {
+    color: var(--verde-oscuro);
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.categoria-descripcion {
+    color: var(--gris-medio);
+    font-size: 0.875rem;
+    margin: 0.5rem 0;
+    line-height: 1.4;
+}
+
+.categoria-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--verde-claro);
+}
+
+.productos-count {
+    color: var(--gris-oscuro);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.estado-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.estado-badge.activa {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.estado-badge.inactiva {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.categoria-acciones {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--verde-claro);
+    justify-content: flex-end;
+}
+
+.btn-toggle-categoria,
+.btn-eliminar-categoria {
+    border: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+
+.btn-toggle-categoria.activar {
+    background-color: #28a745;
+    color: var(--blanco);
+}
+
+.btn-toggle-categoria.activar:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+}
+
+.btn-toggle-categoria.desactivar {
+    background-color: #ffc107;
+    color: var(--gris-oscuro);
+}
+
+.btn-toggle-categoria.desactivar:hover {
+    background-color: #e0a800;
+    transform: scale(1.05);
+}
+
+.btn-eliminar-categoria {
+    background-color: #dc3545;
+    color: var(--blanco);
+}
+
+.btn-eliminar-categoria:hover {
+    background-color: #c82333;
+    transform: scale(1.05);
+}
+
+.btn-ajustar {
+    background-color: #0d6efd;
+    color: var(--blanco);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.btn-ajustar:hover {
+    background-color: #0b5ed7;
+}
+
+.btn-eliminar {
+    background-color: #dc3545;
+    color: var(--blanco);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.btn-eliminar:hover {
+    background-color: #bb2d3b;
+}
+
+.modal-small {
+    max-width: 500px;
+}
+
+.stock-info {
+    background-color: var(--verde-fondo);
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.stock-info p {
+    margin: 0;
+    color: var(--verde-oscuro);
+}
+
+.helper-text {
+    display: block;
+    color: var(--gris-medio);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+textarea.form-input {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+.spinner {
+    border: 4px solid var(--verde-fondo);
+    border-top: 4px solid var(--verde-principal);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gris-medio);
+    grid-column: 1 / -1;
+}
+
+/* ESTILOS PARA BOTÓN NUEVA CATEGORÍA */
+.label-with-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.label-with-button label {
+    margin: 0;
+}
+
+.btn-nueva-categoria {
+    background-color: var(--verde-principal);
+    color: var(--blanco);
+    border: none;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.btn-nueva-categoria:hover {
+    background-color: var(--verde-hover);
+    transform: translateY(-1px);
+}
+
+.btn-nueva-categoria:active {
+    transform: translateY(0);
+}

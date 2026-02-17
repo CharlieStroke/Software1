@@ -21,9 +21,10 @@ function App() {
           <Route path="/comandas/detalle/:id" element={<ProtectedRoute allowedRoles={["cocinero","admin"]} attemptedSection={"detalle comanda"}><DetalleComanda /></ProtectedRoute>} />
           <Route path="/inventario" element={<ProtectedRoute allowedRoles={["admin","gerente","dueño","cajero"]}><Dashboard /></ProtectedRoute>} />
           <Route path="/pedidos" element={<ProtectedRoute allowedRoles={["admin","mesero","cajero","dueño"]}><Dashboard /></ProtectedRoute>} />
-          <Route path="/usuarios" element={<ProtectedRoute allowedRoles={["admin","gerente"]}><Dashboard /></ProtectedRoute>} />
-          <Route path="/dueños" element={<ProtectedRoute allowedRoles={["dueño","admin"]}><Dashboard /></ProtectedRoute>} />
+          <Route path="/usuarios" element={<ProtectedRoute allowedRoles={["admin"]}><Dashboard /></ProtectedRoute>} />
+          <Route path="/meseros" element={<ProtectedRoute allowedRoles={["admin","gerente","dueño"]}><Dashboard /></ProtectedRoute>} />
           <Route path="/sucursal" element={<ProtectedRoute allowedRoles={["admin","gerente","dueño"]}><Dashboard /></ProtectedRoute>} />
+          <Route path="/metricas" element={<ProtectedRoute allowedRoles={["admin","dueño"]}><Dashboard /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </Router>
